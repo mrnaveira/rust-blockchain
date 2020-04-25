@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
+actix-web = "2.0.0"
+actix-rt = "1.0"
 chrono = "0.4"
 rust-crypto = "0.2.36"
 serde = { version = "1.0.106", features = ["derive"] }

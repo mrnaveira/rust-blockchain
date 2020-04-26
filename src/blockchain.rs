@@ -8,12 +8,12 @@ use serde_json;
 pub struct Transaction {
     pub sender: String,
     pub recipient: String,
-    pub amount: f64,
+    pub amount: u64,
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Block {
-    pub index: i64,
+    pub index: u64,
     pub timestamp: i64,
     pub previous_hash: String,
     pub hash: String,
@@ -21,7 +21,7 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn new(index: i64, previous_hash: String, transactions: Vec<Transaction>) -> Block { 
+    pub fn new(index: u64, previous_hash: String, transactions: Vec<Transaction>) -> Block { 
         let mut block = Block {
             index: index,
             timestamp: Utc::now().timestamp_millis(),
@@ -47,9 +47,9 @@ impl Block {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Blockchain {
-    blocks: Vec<Block>,
+    pub blocks: Vec<Block>,
     pub current_block: Block
 }
 
@@ -67,7 +67,7 @@ impl Blockchain {
     }
 
     pub fn add_block(&mut self, transactions: Vec<Transaction>) -> Block {
-        let index = (self.current_block.index + 1) as i64;
+        let index = (self.current_block.index + 1) as u64;
         let previous_hash = self.current_block.hash.clone();
         let block = Block::new(index, previous_hash, transactions);
 

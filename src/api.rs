@@ -1,18 +1,30 @@
-use actix_web::{web, App, HttpRequest, HttpServer, Responder};
+use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use std::sync::Mutex;
 
-async fn greet(req: HttpRequest) -> impl Responder {
-    let name = req.match_info().get("name").unwrap_or("World");
-    format!("Hello {}!", &name)
+use crate::blockchain::Blockchain;
+
+struct AppState {
+    blockchain_mutex: Mutex<Blockchain>
+}
+
+async fn get_blocks(state: web::Data<AppState>) -> impl Responder {
+    let blockchain_mutex = &state.blockchain_mutex;
+    let blockchain = blockchain_mutex.lock().unwrap();
+    HttpResponse::Ok().json(&blockchain.blocks)
 }
 
 #[actix_rt::main]
-pub async fn run(port: u16) -> std::io::Result<()> {
+pub async fn run(port: u16, blockchain: Blockchain) -> std::io::Result<()> {
     let url = format!("localhost:{}", port);
 
-    HttpServer::new(|| {
+    let my_data = web::Data::new(AppState {
+        blockchain_mutex: Mutex::new(blockchain),
+    });
+
+    HttpServer::new(move || {
         App::new()
-            .route("/", web::get().to(greet))
-            .route("/{name}", web::get().to(greet))
+            .app_data(my_data.clone())
+            .route("/blocks", web::get().to(get_blocks))
     })
     .bind(url).unwrap()
     .run()

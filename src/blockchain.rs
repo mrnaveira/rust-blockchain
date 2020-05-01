@@ -1,10 +1,12 @@
 use chrono::prelude::*;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use serde_json;
 
-#[derive(Debug, Clone, Serialize)]
+const TRANSACTION_POOL_SIZE: i32 = 3;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Transaction {
     pub sender: String,
     pub recipient: String,
@@ -50,7 +52,8 @@ impl Block {
 #[derive(Debug, Serialize, Clone)]
 pub struct Blockchain {
     pub blocks: Vec<Block>,
-    pub current_block: Block
+    pub current_block: Block,
+    pub transaction_pool: Vec<Transaction>
 }
 
 impl Blockchain {
@@ -59,7 +62,8 @@ impl Blockchain {
 
         let mut blockchain = Blockchain {
             blocks: Vec::new(),
-            current_block: genesis_block.clone()
+            current_block: genesis_block.clone(),
+            transaction_pool: Vec::new()
         };
 
         blockchain.blocks.push(genesis_block.clone());
@@ -82,5 +86,16 @@ impl Blockchain {
         let transactions = Vec::new();
 
         Block::new(index, previous_hash, transactions)
+    }
+
+    pub fn add_transaction(&mut self, transaction: Transaction) {
+        self.transaction_pool.push(transaction);
+        
+        // for now, we are going to auto create a new block on every 3 transactions
+        let pool_len = self.transaction_pool.len();
+        if pool_len as i32 >= TRANSACTION_POOL_SIZE {
+            self.add_block(self.transaction_pool.clone());
+            self.transaction_pool.clear();
+        }
     }
 }

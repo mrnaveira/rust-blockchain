@@ -1,7 +1,7 @@
 mod api;
 mod blockchain;
 
-use blockchain::blockchain::Blockchain;
+use blockchain::Blockchain;
 
 fn main() {
     let blockchain = Blockchain::new();

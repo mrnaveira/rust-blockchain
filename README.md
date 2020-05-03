@@ -1,7 +1,7 @@
 # rust-blockchain
 A toy blockchain written in Rust. Blockchain is a difficult subject to understand only 
 by reading about it. Decided to learn by doing, this repository attempts to provide
-a simple implementation of a blockhain. 
+a simple implementation of a blockchain. 
 
 The language of choice is Rust due to it being memory safe, fast and great at concurrent programming.
 

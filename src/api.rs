@@ -1,7 +1,8 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use std::sync::Mutex;
 
-use crate::blockchain::{Blockchain, Transaction};
+use crate::blockchain::blockchain::Blockchain;
+use crate::blockchain::transaction::Transaction;
 
 struct AppState {
     blockchain_mutex: Mutex<Blockchain>

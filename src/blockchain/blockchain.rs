@@ -3,8 +3,6 @@ use serde::{Serialize};
 use crate::blockchain::block::Block;
 use crate::blockchain::transaction::Transaction;
 
-const TRANSACTION_POOL_SIZE: i32 = 3;
-
 #[derive(Debug, Serialize, Clone)]
 pub struct Blockchain {
     pub blocks: Vec<Block>,
@@ -42,16 +40,5 @@ impl Blockchain {
         let transactions = Vec::new();
 
         Block::new(index, previous_hash, transactions)
-    }
-
-    pub fn add_transaction(&mut self, transaction: Transaction) {
-        self.transaction_pool.push(transaction);
-        
-        // for now, we are going to auto create a new block on every 3 transactions
-        let pool_len = self.transaction_pool.len();
-        if pool_len as i32 >= TRANSACTION_POOL_SIZE {
-            self.add_block(self.transaction_pool.clone());
-            self.transaction_pool.clear();
-        }
     }
 }

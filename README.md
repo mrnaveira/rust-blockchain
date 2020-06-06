@@ -8,7 +8,7 @@ The language of choice is Rust due to it being memory safe, fast and great at co
 This repository is only a conceptual work:
 * Defines data structures to model a minimum blockchain
 * Provides a REST API to retrieve the blocks and add transactions
-* Every 3 transactions, a new block will be added to the blockchain
+* Every 5 seconds a new block will be added to the blockchain, containing all transactions in the transaction pool
 
 ## Getting Started
 You will need Rust installed. You can install it from https://rustup.rs. It will also install Cargo, Rust's package manager.

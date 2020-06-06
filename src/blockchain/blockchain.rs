@@ -1,4 +1,5 @@
 use serde::{Serialize};
+use std::sync::{Arc, Mutex};
 
 use crate::blockchain::block::Block;
 use crate::blockchain::transaction::Transaction;
@@ -41,4 +42,10 @@ impl Blockchain {
 
         Block::new(index, previous_hash, transactions)
     }
+}
+
+pub type SharedBlockchain = Arc<Mutex<Blockchain>>;
+
+pub fn create_shared_blockchain() -> SharedBlockchain {
+    return Arc::new(Mutex::new(Blockchain::new()));
 }

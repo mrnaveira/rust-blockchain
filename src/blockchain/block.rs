@@ -10,16 +10,18 @@ use crate::blockchain::transaction::Transaction;
 pub struct Block {
     pub index: u64,
     pub timestamp: i64,
+    pub nonce: u64,
     pub previous_hash: String,
     pub hash: String,
     pub transactions: Vec<Transaction>,
 }
 
 impl Block {
-    pub fn new(index: u64, previous_hash: String, transactions: Vec<Transaction>) -> Block { 
+    pub fn new(index: u64, nonce: u64, previous_hash: String, transactions: Vec<Transaction>) -> Block { 
         let mut block = Block {
             index: index,
             timestamp: Utc::now().timestamp_millis(),
+            nonce: nonce,
             previous_hash: previous_hash,
             hash: String::new(),
             transactions: transactions,

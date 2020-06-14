@@ -1,7 +1,7 @@
 use serde::{Serialize};
 use std::sync::{Arc, Mutex};
 
-use crate::blockchain::block::Block;
+use crate::blockchain::block::{Block, BlockHash};
 use crate::blockchain::transaction::Transaction;
 
 #[derive(Debug, Serialize, Clone)]
@@ -33,7 +33,7 @@ impl Blockchain {
     fn create_genesis_block() -> Block {
         let index = 0;
         let nonce = 0;
-        let previous_hash = String::new();
+        let previous_hash = BlockHash::default();
         let transactions = Vec::new();
 
         Block::new(index, nonce, previous_hash, transactions)

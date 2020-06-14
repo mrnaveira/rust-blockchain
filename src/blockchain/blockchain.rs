@@ -25,22 +25,18 @@ impl Blockchain {
         blockchain
     }
 
-    pub fn add_block(&mut self, transactions: Vec<Transaction>) -> Block {
-        let index = (self.current_block.index + 1) as u64;
-        let previous_hash = self.current_block.hash.clone();
-        let block = Block::new(index, previous_hash, transactions);
-
+    pub fn add_block(&mut self, block: Block) {
         self.blocks.push(block.clone());
         self.current_block = block.clone();
-        block.clone()
     }
 
     fn create_genesis_block() -> Block {
         let index = 0;
+        let nonce = 0;
         let previous_hash = String::new();
         let transactions = Vec::new();
 
-        Block::new(index, previous_hash, transactions)
+        Block::new(index, nonce, previous_hash, transactions)
     }
 }
 

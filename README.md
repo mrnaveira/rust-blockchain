@@ -1,7 +1,7 @@
 # rust-blockchain
 A toy blockchain written in Rust. This blockchain is a conceptual work:
 * Defines data structures to model a minimum blockchain
-* Mines new blocs in a separate thread, running PoW with a fixed difficulty. Mining will stop until new transactions arrive.
+* Mines new blocks in a separate thread, running PoW with a fixed difficulty. Mining will stop until new transactions arrive.
 * Provides a REST API to retrieve the blocks and add transactions
 
 ## Getting Started

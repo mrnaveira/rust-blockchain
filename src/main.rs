@@ -3,12 +3,12 @@ mod blockchain;
 mod miner;
 mod transaction_pool;
 
-use blockchain::{create_shared_blockchain, SharedBlockchain};
-use transaction_pool::{create_shared_transaction_pool, SharedTransactionPool};
+use blockchain::SharedBlockchain;
+use transaction_pool::SharedTransactionPool;
 
 fn main() {
-    let shared_blockchain: SharedBlockchain = create_shared_blockchain();
-    let shared_transaction_pool: SharedTransactionPool = create_shared_transaction_pool();
+    let shared_blockchain = SharedBlockchain::default();
+    let shared_transaction_pool = SharedTransactionPool::default();
 
     // start mining
     miner::run(shared_blockchain.clone(), shared_transaction_pool.clone());

@@ -9,6 +9,5 @@ pub use block::BlockHash;
 
 pub use blockchain::Blockchain;
 pub use blockchain::SharedBlockchain;
-pub use blockchain::create_shared_blockchain;
 
 pub use transaction::Transaction;

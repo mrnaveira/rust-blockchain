@@ -40,8 +40,8 @@ impl Blockchain {
     }
 }
 
-pub type SharedBlockchain = Arc<Mutex<Blockchain>>;
-
-pub fn create_shared_blockchain() -> SharedBlockchain {
-    return Arc::new(Mutex::new(Blockchain::new()));
+impl Default for Blockchain {
+    fn default() -> Self { Blockchain::new() }
 }
+
+pub type SharedBlockchain = Arc<Mutex<Blockchain>>;

@@ -1,0 +1,56 @@
+{
+	"info": {
+		"_postman_id": "df95099b-2177-4f38-86a7-deb3c0158447",
+		"name": "rust-blockchain",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get all blocks of the blockchain",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/blocks",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"blocks"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add a new transaction to the pool",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sender\": \"1\",\n    \"recipient\": \"2\",\n    \"amount\": 1002\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/transactions",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

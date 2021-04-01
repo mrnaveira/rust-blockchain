@@ -1,10 +1,10 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use crate::blockchain::{SharedBlockchain, Transaction};
-use super::transaction_pool::{SharedTransactionPool};
+use super::transaction_pool::{TransactionPool};
 
 struct ApiState {
     shared_blockchain: SharedBlockchain,
-    shared_transaction_pool: SharedTransactionPool
+    transaction_pool: TransactionPool
 }
 
 async fn get_blocks(state: web::Data<ApiState>) -> impl Responder {
@@ -20,19 +20,18 @@ async fn add_transaction(state: web::Data<ApiState>, transaction_json: web::Json
         amount: transaction_json.amount.clone()
     };
 
-    let shared_transaction_pool = &state.shared_transaction_pool;
-    let mut transaction_pool = shared_transaction_pool.lock().unwrap();
-    transaction_pool.push(transaction);
+    let transaction_pool = &state.transaction_pool;
+    transaction_pool.add_transaction(transaction);
 
     HttpResponse::Ok()
 }
 
 #[actix_rt::main]
-pub async fn run(port: u16, shared_blockchain: SharedBlockchain, shared_transaction_pool: SharedTransactionPool) -> std::io::Result<()> {
+pub async fn run(port: u16, shared_blockchain: SharedBlockchain, transaction_pool: TransactionPool) -> std::io::Result<()> {
     let url = format!("localhost:{}", port);
     let api_state = web::Data::new(ApiState {
         shared_blockchain: shared_blockchain,
-        shared_transaction_pool: shared_transaction_pool
+        transaction_pool: transaction_pool
     });
 
     HttpServer::new(move || {

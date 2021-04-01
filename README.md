@@ -7,7 +7,7 @@ A simple blockchain example written in Rust:
 ## Getting Started
 You will need Rust and Cargo installed.
 
-Then, simple compile and run the executable:
+Then, simply compile and run the executable:
 ```console
 $ cargo build --release
 $ ./target/release/rust_blockchain

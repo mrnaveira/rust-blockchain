@@ -4,7 +4,7 @@ use std::{thread, time};
 
 const MAX_NONCE: u64 = 1_000_000;
 const DIFFICULTY: usize = 10;
-const WAIT_FOR_TRANSACTIONS_IN_SECS: u64 = 5;
+const TRANSACTION_WAITING_SECONDS: u64 = 5;
 
 fn create_next_block(last_block: Block, transactions: TransactionVec, nonce: u64) -> Block {
     let index = (last_block.index + 1) as u64;
@@ -31,6 +31,11 @@ fn mine_block(last_block: Block, transactions: TransactionVec, target: BlockHash
     None
 }
 
+fn sleep_seconds(seconds: u64) {
+    let wait_duration = time::Duration::from_secs(seconds);
+    thread::sleep(wait_duration);
+}
+
 fn mine(blockchain: Blockchain, transaction_pool: TransactionPool) {
     let target = create_target(DIFFICULTY);
     
@@ -40,8 +45,7 @@ fn mine(blockchain: Blockchain, transaction_pool: TransactionPool) {
 
         // Do not try to mine a block if there are no transactions in the pool
         if transactions.is_empty() {
-            let wait_duration = time::Duration::from_secs(WAIT_FOR_TRANSACTIONS_IN_SECS);
-            thread::sleep(wait_duration);
+            sleep_seconds(TRANSACTION_WAITING_SECONDS);
             continue
         }
 

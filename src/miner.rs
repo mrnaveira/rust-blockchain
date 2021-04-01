@@ -1,4 +1,4 @@
-use crate::blockchain::{SharedBlockchain, Blockchain, Block, BlockHash};
+use crate::blockchain::{Blockchain, Block, BlockHash};
 use super::transaction_pool::{TransactionVec, TransactionPool};
 use std::{thread, time};
 
@@ -6,9 +6,9 @@ const MAX_NONCE: u64 = 1_000_000;
 const DIFFICULTY: usize = 10;
 const WAIT_FOR_TRANSACTIONS_IN_SECS: u64 = 5;
 
-fn create_next_block(blockchain: Blockchain, transactions: TransactionVec, nonce: u64) -> Block {
-    let index = (blockchain.current_block.index + 1) as u64;
-    let previous_hash = blockchain.current_block.hash.clone();
+fn create_next_block(last_block: Block, transactions: TransactionVec, nonce: u64) -> Block {
+    let index = (last_block.index + 1) as u64;
+    let previous_hash = last_block.hash.clone();
 
     Block::new(index, nonce, previous_hash, transactions)
 }
@@ -19,29 +19,23 @@ fn create_target(difficulty: usize) -> BlockHash {
     target
 }
 
-fn get_blockhain_contents(shared_blockchain: SharedBlockchain) -> Blockchain {
-    let blockchain = shared_blockchain.lock().unwrap();
-    return blockchain.clone();
-}
-
-fn mine_block(blockchain: Blockchain, transactions: TransactionVec, target: BlockHash) -> Option<Block> {
+fn mine_block(last_block: Block, transactions: TransactionVec, target: BlockHash) -> Option<Block> {
     for nonce in 0..MAX_NONCE {
-        let block = create_next_block(blockchain.clone(), transactions.clone(), nonce);
+        let next_block = create_next_block(last_block.clone(), transactions.clone(), nonce);
  
-        if block.hash < target {
-            return Some(block);
+        if next_block.hash < target {
+            return Some(next_block);
         }
     }
 
     None
 }
 
-fn mine(shared_blockchain: SharedBlockchain, transaction_pool: TransactionPool) {
+fn mine(blockchain: Blockchain, transaction_pool: TransactionPool) {
     let target = create_target(DIFFICULTY);
     
     // TODO: add a parameter to start and stop mining
     loop { 
-        let blockchain = get_blockhain_contents(shared_blockchain.clone());
         let transactions = transaction_pool.pop();
 
         // Do not try to mine a block if there are no transactions in the pool
@@ -51,10 +45,10 @@ fn mine(shared_blockchain: SharedBlockchain, transaction_pool: TransactionPool) 
             continue
         }
 
-        let mining_result = mine_block(blockchain.clone(), transactions.clone(), target.clone());
+        let last_block = blockchain.get_last_block();
+        let mining_result = mine_block(last_block, transactions.clone(), target.clone());
         match mining_result {
             Some(block) => {
-                let mut blockchain = shared_blockchain.lock().unwrap();  
                 blockchain.add_block(block.clone());
             }
             None => {
@@ -65,8 +59,8 @@ fn mine(shared_blockchain: SharedBlockchain, transaction_pool: TransactionPool) 
     }
 }
 
-pub fn run(shared_blockchain: SharedBlockchain, transaction_pool: TransactionPool) {
-    let miner_blockchain = shared_blockchain.clone();
+pub fn run(blockchain: Blockchain, transaction_pool: TransactionPool) {
+    let miner_blockchain = blockchain.clone();
     let miner_pool = transaction_pool.clone();
 
     thread::spawn(move || {

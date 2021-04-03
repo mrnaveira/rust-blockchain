@@ -22,6 +22,7 @@ impl TransactionPool {
     pub fn add_transaction(&self, transaction: Transaction) {
         let mut transactions = self.transactions.lock().unwrap();
         transactions.push(transaction.clone());
+        info!("transaction added");
     }
 
     pub fn pop(&self) -> TransactionVec {

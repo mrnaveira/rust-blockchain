@@ -4,7 +4,7 @@ use std::{thread, time};
 
 const MAX_NONCE: u64 = 1_000_000;
 const DIFFICULTY: usize = 10;
-const TRANSACTION_WAITING_SECONDS: u64 = 5;
+const TRANSACTION_WAITING_SECONDS: u64 = 10;
 
 fn create_next_block(last_block: Block, transactions: TransactionVec, nonce: u64) -> Block {
     let index = (last_block.index + 1) as u64;
@@ -37,9 +37,9 @@ fn sleep_seconds(seconds: u64) {
 }
 
 fn mine(blockchain: Blockchain, transaction_pool: TransactionPool) {
+    info!("starting minining with difficulty {}", DIFFICULTY);
     let target = create_target(DIFFICULTY);
     
-    // TODO: add a parameter to start and stop mining
     loop { 
         let transactions = transaction_pool.pop();
 
@@ -53,11 +53,12 @@ fn mine(blockchain: Blockchain, transaction_pool: TransactionPool) {
         let mining_result = mine_block(last_block, transactions.clone(), target.clone());
         match mining_result {
             Some(block) => {
+                info!("valid block found for index {}", block.index);
                 blockchain.add_block(block.clone());
             }
             None => {
                 // TODO: raise exception when a valid block was not found
-                println!("No valid block was found");
+                error!("no valid block was found");
             }
         }
     }

@@ -68,8 +68,8 @@ This project implements a simplified PoW algorithm based on hashes, in the line 
 - [x] Basic miner that adds transactions every N seconds
 - [x] Basic PoW implementation: nonce, miner calculates hashes and fixed difficulty
 - [ ] Mining peers communicate new blocks over WebSockets
-- [ ] Block rewards: subsidy and transaction fees. May need to establish a max block size first
+- [ ] Dynamic difficulty 
+- [ ] Block rewards: subsidy and transaction fees
 - [ ] Validate transaction balances
-- [ ] PoW improvement: dynamic difficulty and halving
+- [ ] Halving
 - [ ] Digital signing of transactions
-- [ ] Other: disk storage of blocks, logging, config file, testing, etc.

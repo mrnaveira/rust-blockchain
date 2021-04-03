@@ -1,13 +1,13 @@
 # rust-blockchain
 A simple blockchain example written in Rust:
 * Defines data structures to model a minimum blockchain
-* Mines new blocks in a separate thread, running a Proof of Work algorithm with a fixed difficulty. Mining will stop until new transactions arrive.
+* Mines new blocks in a separate thread, running a Proof of Work algorithm with a fixed difficulty
 * Provides a REST API to retrieve the blocks and add transactions
 
 ## Getting Started
 You will need Rust and Cargo installed.
 
-```console
+```bash
 # Download the code
 $ git clone https://github.com/mrnaveira/rust-blockchain
 $ cd rust-blockchain

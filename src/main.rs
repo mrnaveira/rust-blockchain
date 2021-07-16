@@ -10,6 +10,7 @@ mod transaction_pool;
 
 use config::Config;
 use blockchain::Blockchain;
+use miner::MinerSettings;
 use transaction_pool::TransactionPool;
 
 fn main() {
@@ -22,7 +23,12 @@ fn main() {
     let transaction_pool = TransactionPool::new();
 
     // start mining
-    miner::run(blockchain.clone(), transaction_pool.clone());
+    let miner_settings = MinerSettings {
+        max_nonce: config.max_nonce,
+        difficulty: config.difficulty,
+        tx_waiting_seconds: config.tx_waiting_seconds
+    };
+    miner::run(miner_settings, blockchain.clone(), transaction_pool.clone());
 
     // start the client REST API
     api::run(config.client_port, blockchain.clone(), transaction_pool.clone())

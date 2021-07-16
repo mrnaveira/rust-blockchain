@@ -2,9 +2,11 @@ use crate::blockchain::{Blockchain, Block, BlockHash};
 use super::transaction_pool::{TransactionVec, TransactionPool};
 use std::{thread, time};
 
-const MAX_NONCE: u64 = 1_000_000;
-const DIFFICULTY: usize = 10;
-const TRANSACTION_WAITING_SECONDS: u64 = 10;
+pub struct MinerSettings {
+    pub max_nonce: u64,
+    pub difficulty: usize,
+    pub tx_waiting_seconds: u64
+}
 
 fn create_next_block(last_block: Block, transactions: TransactionVec, nonce: u64) -> Block {
     let index = (last_block.index + 1) as u64;
@@ -19,8 +21,8 @@ fn create_target(difficulty: usize) -> BlockHash {
     target
 }
 
-fn mine_block(last_block: Block, transactions: TransactionVec, target: BlockHash) -> Option<Block> {
-    for nonce in 0..MAX_NONCE {
+fn mine_block(last_block: Block, transactions: TransactionVec, target: BlockHash, max_nonce: u64) -> Option<Block> {
+    for nonce in 0..max_nonce {
         let next_block = create_next_block(last_block.clone(), transactions.clone(), nonce);
  
         if next_block.hash < target {
@@ -36,21 +38,21 @@ fn sleep_seconds(seconds: u64) {
     thread::sleep(wait_duration);
 }
 
-fn mine(blockchain: Blockchain, transaction_pool: TransactionPool) {
-    info!("starting minining with difficulty {}", DIFFICULTY);
-    let target = create_target(DIFFICULTY);
+fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: TransactionPool) {
+    info!("starting minining with difficulty {}", settings.difficulty);
+    let target = create_target(settings.difficulty);
     
     loop { 
         let transactions = transaction_pool.pop();
 
         // Do not try to mine a block if there are no transactions in the pool
         if transactions.is_empty() {
-            sleep_seconds(TRANSACTION_WAITING_SECONDS);
+            sleep_seconds(settings.tx_waiting_seconds);
             continue
         }
 
         let last_block = blockchain.get_last_block();
-        let mining_result = mine_block(last_block, transactions.clone(), target.clone());
+        let mining_result = mine_block(last_block, transactions.clone(), target.clone(), settings.max_nonce);
         match mining_result {
             Some(block) => {
                 info!("valid block found for index {}", block.index);
@@ -64,11 +66,11 @@ fn mine(blockchain: Blockchain, transaction_pool: TransactionPool) {
     }
 }
 
-pub fn run(blockchain: Blockchain, transaction_pool: TransactionPool) {
+pub fn run(settings: MinerSettings, blockchain: Blockchain, transaction_pool: TransactionPool) {
     let miner_blockchain = blockchain.clone();
     let miner_pool = transaction_pool.clone();
 
     thread::spawn(move || {
-        mine(miner_blockchain, miner_pool)
+        mine(settings, miner_blockchain, miner_pool)
     });
 }

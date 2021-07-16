@@ -56,7 +56,7 @@ This prevents the double spending problem by forcing any attacker that wants to 
 This project implements a simplified PoW algorithm based on hashes, in the line of what Bitcoin does. The `miner.rs` file implements the steps to create a valid block:
 1. All transactions in the pool are added to the block. If there is no transactions in the pool, do not mine until they arrive.
 2. The block contains the valid index and timestamp, as well as the **hash of the previous block** to maintain order.
-3. Iterate the **nonce** value until the hash of the whole block satisfies the difficulty constraint, which is to be less than a target value. The difficulty target in this project is arbitrarily fixed to be a reasonable amount for a typical PC, but in a real project we want dynamic difficulty.
+3. Iterate the **nonce** value until the hash of the whole block satisfies the difficulty constraint, which is to be less than a target value. The difficulty target is fixed for the execution of the server, but in a real project we would want dynamic difficulty adjusted in runtime to have constant time intervals between blocks.
 4. When a valid block is found, add it to the blockchain and repeat from step 1 to create the next block.
 
 ## Roadmap

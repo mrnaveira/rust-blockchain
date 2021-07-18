@@ -6,6 +6,8 @@ use std::str::FromStr;
 
 type StringVec = Vec<String>;
 
+// Encapsulates configuration values to be used across the application
+// It ensures correct typing and that at least they will have a default value
 pub struct Config {
     // Networking settings
     pub client_port: u16,
@@ -18,7 +20,11 @@ pub struct Config {
     pub tx_waiting_seconds: u64
 }
 
+// The implementation reads the values from environment variables
+// If a value is missing then it enforces a default value
 impl Config {
+
+    // Parse and return configuration values from environment variables
     pub fn read() -> Config {
         dotenv().ok();
 
@@ -37,6 +43,7 @@ impl Config {
         return config;
     }
 
+    // Parses a singular value from a environment variable, accepting a default value if missing
     fn read_envvar<T: FromStr>(key: &str, default_value: T) -> T {
         match env::var(key) {
             Ok(val) => return val.parse::<T>().unwrap_or(default_value),
@@ -44,6 +51,7 @@ impl Config {
         }
     }
 
+    // Parses a multiple value (Vec) from a environment variable, accepting a default value if missing
     fn read_vec_envvar(key: &str, separator: &str, default_value: StringVec) -> StringVec {
         match env::var(key) {
             Ok(val) => return val.trim().split(separator).map(str::to_string).collect(),

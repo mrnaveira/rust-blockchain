@@ -7,12 +7,18 @@ pub type BlockVec = Vec<Block>;
 // We don't need to export this because concurrency is encapsulated in this file
 type SyncedBlockVec = Arc<Mutex<BlockVec>>;
 
+// Struct that holds all the blocks in the blockhain
+// Multiple threads can read/write concurrently to the list of blocks
 #[derive(Debug, Clone)]
 pub struct Blockchain {
     blocks: SyncedBlockVec,
 }
 
+// Basic operations in the blockchain are encapsulated in the implementation
+// Encapsulates concurrency concerns, so external callers do not need to know how it's handled
 impl Blockchain {
+
+    // Creates a brand new blockchain with a genesis block
     pub fn new() -> Blockchain {
         let genesis_block = Blockchain::create_genesis_block();
 
@@ -28,6 +34,7 @@ impl Blockchain {
         return blockchain;
     }
 
+    // Returns a copy of the most recent block in the blockchain
     pub fn get_last_block(&self) -> Block {
         let blocks = self.blocks.lock().unwrap();
         let last_block = blocks[blocks.len() - 1].clone();
@@ -35,11 +42,15 @@ impl Blockchain {
         return last_block;
     }
 
+    // Returns a copy of the whole list of blocks
     pub fn get_all_blocks(&self) -> BlockVec {
         let blocks = self.blocks.lock().unwrap();
         return blocks.clone();
     }
 
+    // Tries to append a new block into the blockchain
+    // It will validate that the values of the new block are consistend with the blockchain state
+    // This operation is safe to be called concurrently from multiple threads
     pub fn add_block(&self, block: Block) {
         // the "blocks" attribute is protected by a Mutex
         // so only one thread at a time can access the value when the lock is held

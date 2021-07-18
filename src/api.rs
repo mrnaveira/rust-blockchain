@@ -7,6 +7,7 @@ struct ApiState {
     transaction_pool: TransactionPool
 }
 
+// Returns a list of all the blocks in the blockchain
 async fn get_blocks(state: web::Data<ApiState>) -> impl Responder {
     let blockchain = &state.blockchain;
     let blocks = blockchain.get_all_blocks();
@@ -14,6 +15,7 @@ async fn get_blocks(state: web::Data<ApiState>) -> impl Responder {
     HttpResponse::Ok().json(&blocks)
 }
 
+// Adds a new transaction to the pool, to be included on the next block
 async fn add_transaction(state: web::Data<ApiState>, transaction_json: web::Json<Transaction>) -> impl Responder {
     let transaction = Transaction {
         sender: transaction_json.sender.clone(),

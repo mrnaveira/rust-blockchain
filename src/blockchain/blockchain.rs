@@ -41,6 +41,10 @@ impl Blockchain {
     }
 
     pub fn add_block(&self, block: Block) {
+        // the "blocks" attribute is protected by a Mutex
+        // so only one thread at a time can access the value when the lock is held
+        // that prevents adding multiple valid blocks at the same time
+        // preserving the correct order of indexes and hashes of the blockchain
         let mut blocks = self.blocks.lock().unwrap();
         let last = &blocks[blocks.len() - 1];
  

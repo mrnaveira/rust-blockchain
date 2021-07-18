@@ -12,6 +12,9 @@ You will need Rust and Cargo installed.
 $ git clone https://github.com/mrnaveira/rust-blockchain
 $ cd rust-blockchain
 
+# Run all tests
+$ cargo test
+
 # Build the project in release mode
 $ cargo build --release
 

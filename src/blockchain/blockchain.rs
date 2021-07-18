@@ -42,7 +42,24 @@ impl Blockchain {
 
     pub fn add_block(&self, block: Block) {
         let mut blocks = self.blocks.lock().unwrap();
+        let last = &blocks[blocks.len() - 1];
+ 
+        // check that the index is valid
+        if block.index != last.index + 1 {
+            panic!("Invalid index for new block {}.", block.index);
+        }
 
+        // check that the previous_hash is valid
+        if block.previous_hash != last.hash {
+            panic!("Invalid previous_hash for new block {}.", block.previous_hash);
+        }
+
+        // check that the hash matches the data
+        if block.hash != block.calculate_hash() {
+            panic!("Invalid hash for new block {}.", block.hash);
+        }
+
+        // append the block to the end
         blocks.push(block.clone());
     }
 
@@ -81,5 +98,64 @@ mod tests {
         assert_eq!(block.nonce, 0);
         assert_eq!(block.previous_hash, BlockHash::default());
         assert!(block.transactions.is_empty());
+    }
+
+    #[test]
+    fn should_let_adding_valid_blocks() {
+        let blockchain = Blockchain::new();
+
+        // create a valid block
+        let previous_hash = blockchain.get_last_block().hash;
+        let block = Block::new(1, 0, previous_hash, Vec::new());
+
+        // add it to the blockchain and check it was really added
+        blockchain.add_block(block.clone());
+
+        let blocks = blockchain.get_all_blocks();
+        assert_eq!(blocks.len(), 2);
+
+        let last_block = blockchain.get_last_block();
+        assert_eq!(last_block.hash, block.hash);
+    }
+
+    #[test]
+    #[should_panic]
+    fn should_not_let_adding_block_with_invalid_index() {
+        let blockchain = Blockchain::new();
+
+        // create a block with invalid index
+        let invalid_index = 2;
+        let previous_hash = blockchain.get_last_block().hash;
+        let block = Block::new(invalid_index, 0, previous_hash, Vec::new());
+
+        // try adding the invalid block, it should panic
+        blockchain.add_block(block.clone());
+    }
+
+    #[test]
+    #[should_panic]
+    fn should_not_let_adding_block_with_invalid_previous_hash() {
+        let blockchain = Blockchain::new();
+
+        // create a block with invalid previous hash
+        let invalid_previous_hash = BlockHash::default();
+        let block = Block::new(1, 0, invalid_previous_hash, Vec::new());
+
+        // try adding the invalid block, it should panic
+        blockchain.add_block(block.clone());
+    }
+
+    #[test]
+    #[should_panic]
+    fn should_not_let_adding_block_with_invalid_hash() {
+        let blockchain = Blockchain::new();
+
+        // create a block with invalid hash
+        let previous_hash = blockchain.get_last_block().hash;
+        let mut block = Block::new(1, 0, previous_hash, Vec::new());
+        block.hash = BlockHash::default();
+
+        // try adding the invalid block, it should panic
+        blockchain.add_block(block.clone());
     }
 }

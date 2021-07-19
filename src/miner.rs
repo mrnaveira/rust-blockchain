@@ -111,6 +111,7 @@ pub fn run(settings: MinerSettings, blockchain: Blockchain, transaction_pool: Tr
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::blockchain::{Transaction};
 
     // We use SHA 256 hashes
     const MAX_DIFFICULTY: usize = 256;
@@ -160,9 +161,7 @@ mod tests {
 
         // check that the block is valid
         let mined_block = result.unwrap();
-        assert_eq!(mined_block.index, last_block.index + 1);
-        assert_eq!(mined_block.previous_hash, last_block.hash);
-        assert!(mined_block.hash.leading_zeros() >= difficulty as u32); 
+        assert_mined_block_is_valid(&mined_block, &last_block, difficulty);
     }
 
     #[test]
@@ -182,7 +181,57 @@ mod tests {
         assert!(result.is_none());
     }
 
+    #[test]
+    fn test_mine() {
+        // settings are enough to find blocks in each iteration
+        let difficulty = 1;
+        let settings = MinerSettings {
+            max_blocks: 1,
+            max_nonce: 1_000, 
+            difficulty: difficulty,
+            tx_waiting_ms: 10
+        };
+
+        let blockchain = Blockchain::new();
+        let pool = TransactionPool::new();
+
+        // the pool must have some transactions for the mining to happen
+        let transaction = Transaction {
+            sender: "1".to_string(),
+            recipient: "2".to_string(),
+            amount: 3
+        };
+        pool.add_transaction(transaction.clone());
+
+        mine(settings, blockchain.clone(), pool.clone());
+
+        // a new block should have been added to the blockchain
+        let blocks = blockchain.get_all_blocks();
+        assert_eq!(blocks.len(), 2);
+        let genesis_block = &blocks[0];
+        let mined_block = &blocks[1];
+
+        // the mined block must be valid
+        assert_mined_block_is_valid(mined_block, genesis_block, difficulty);
+
+        // the mined block must include the transaction added previously
+        let mined_transactions = &mined_block.transactions;
+        assert_eq!(mined_transactions.len(), 1);
+        assert_eq!(mined_transactions[0].amount, transaction.amount);
+
+        // the transaction pool must be empty
+        // because the transaction was added to the block when mining
+        let transactions = pool.pop();
+        assert!(transactions.is_empty());
+    }
+
     fn create_empty_block() -> Block {
        return Block::new(0, 0, BlockHash::default(), Vec::new());
+    }
+
+    fn assert_mined_block_is_valid(mined_block: &Block, previous_block: &Block, difficulty: usize) {
+        assert_eq!(mined_block.index, previous_block.index + 1);
+        assert_eq!(mined_block.previous_hash, previous_block.hash);
+        assert!(mined_block.hash.leading_zeros() >= difficulty as u32);
     }
 }

@@ -26,9 +26,10 @@ fn main() {
 
     // start mining
     let miner_settings = MinerSettings {
+        max_blocks: config.max_blocks,
         max_nonce: config.max_nonce,
         difficulty: config.difficulty,
-        tx_waiting_seconds: config.tx_waiting_seconds
+        tx_waiting_ms: config.tx_waiting_ms
     };
     miner::run(miner_settings, blockchain.clone(), transaction_pool.clone());
 

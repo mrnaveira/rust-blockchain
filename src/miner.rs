@@ -5,9 +5,10 @@ use std::{thread, time};
 // Wrapper of mining settings
 // Used to group together related values when calling the miner
 pub struct MinerSettings {
+    pub max_blocks: u64,
     pub max_nonce: u64,
     pub difficulty: usize,
-    pub tx_waiting_seconds: u64
+    pub tx_waiting_ms: u64,
 }
 
 // Creates a valid next block for a blockchain
@@ -45,10 +46,15 @@ fn mine_block(last_block: &Block, transactions: TransactionVec, target: BlockHas
     None
 }
 
-// Suspend the execution of the thread by a particular amount of seconds
-fn sleep_seconds(seconds: u64) {
-    let wait_duration = time::Duration::from_secs(seconds);
+// Suspend the execution of the thread by a particular amount of milliseconds
+fn sleep_millis(millis: u64) {
+    let wait_duration = time::Duration::from_millis(millis);
     thread::sleep(wait_duration);
+}
+
+// check if we have hit the limit of mined blocks (if the limit is set)
+fn must_stop_mining(settings: &MinerSettings, block_counter: u64) -> bool {
+    return settings.max_blocks > 0 && block_counter >= settings.max_blocks;
 }
 
 // Try to constanly calculate and append new valid blocks to the blockchain,
@@ -57,15 +63,20 @@ fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: Trans
     info!("starting minining with difficulty {}", settings.difficulty);
     let target = create_target(settings.difficulty);
     
-    // For now, mining is running forever until the applications stops
     // In each loop it tries to find the next valid block and append it to the blockchain
+    let mut block_counter = 0;
     loop {
+        if must_stop_mining(&settings, block_counter) {
+            info!("block limit reached, stopping mining");
+            break;
+        }
+
         // Empty all transactions from the pool, they will be included in the new block
         let transactions = transaction_pool.pop();
 
         // Do not try to mine a block if there are no transactions in the pool
         if transactions.is_empty() {
-            sleep_seconds(settings.tx_waiting_seconds);
+            sleep_millis(settings.tx_waiting_ms);
             continue
         }
 
@@ -76,12 +87,13 @@ fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: Trans
             Some(block) => {
                 info!("valid block found for index {}", block.index);
                 blockchain.add_block(block.clone());
+                block_counter = block_counter + 1;
             }
             None => {
                 // TODO: raise exception when a valid block was not found
                 error!("no valid block was found");
             }
-        }
+        }  
     }
 }
 

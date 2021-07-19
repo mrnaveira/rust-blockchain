@@ -15,9 +15,10 @@ pub struct Config {
     pub peers: StringVec,
 
     // Miner settings
+    pub max_blocks: u64,
     pub max_nonce: u64,
     pub difficulty: usize,
-    pub tx_waiting_seconds: u64
+    pub tx_waiting_ms: u64
 }
 
 // The implementation reads the values from environment variables
@@ -35,9 +36,10 @@ impl Config {
             peers: Config::read_vec_envvar("PEERS", ",", StringVec::default()),
 
             // Miner settings
+            max_blocks: Config::read_envvar::<u64>("MAX_BLOCKS", 0), // unlimited blocks
             max_nonce: Config::read_envvar::<u64>("MAX_NONCE", 1_000_000),
             difficulty: Config::read_envvar::<usize>("DIFFICULTY", 10),
-            tx_waiting_seconds: Config::read_envvar::<u64>("TRANSACTION_WAITING_SECONDS", 10),
+            tx_waiting_ms: Config::read_envvar::<u64>("TRANSACTION_WAITING_MS", 10000),
         };
         
         return config;

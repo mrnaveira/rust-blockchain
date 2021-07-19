@@ -31,7 +31,7 @@ fn create_target(difficulty: usize) -> BlockHash {
 // Tries to find the next valid block of the blockchain
 // It will create blocks with different "nonce" values until one has a hash that matches the difficulty
 // Returns either a valid block (that satisfies the difficulty) or "None" if no block was found
-fn mine_block(last_block: Block, transactions: TransactionVec, target: BlockHash, max_nonce: u64) -> Option<Block> {
+fn mine_block(last_block: &Block, transactions: TransactionVec, target: BlockHash, max_nonce: u64) -> Option<Block> {
     for nonce in 0..max_nonce {
         let next_block = create_next_block(&last_block, transactions.clone(), nonce);
  
@@ -71,7 +71,7 @@ fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: Trans
 
         // try to find a valid next block of the blockchain
         let last_block = blockchain.get_last_block();
-        let mining_result = mine_block(last_block, transactions.clone(), target.clone(), settings.max_nonce);
+        let mining_result = mine_block(&last_block, transactions.clone(), target.clone(), settings.max_nonce);
         match mining_result {
             Some(block) => {
                 info!("valid block found for index {}", block.index);
@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn test_create_next_block() {
-        let block = Block::new(0, 0, BlockHash::default(), Vec::new());
+        let block = create_empty_block();
         let next_block = create_next_block(&block, Vec::new(), 0);
 
         // the next block must follow the previous one
@@ -131,4 +131,46 @@ mod tests {
         assert_eq!(target.leading_zeros(), MAX_DIFFICULTY as u32); 
     }
 
+    #[test]
+    fn test_mine_block_found() {
+        let last_block = create_empty_block();
+
+        // let's use a small difficulty target for fast testing
+        let difficulty = 1;
+        let target = create_target(difficulty);
+
+        // this should be more than enough nonces to find a block with only 1 zero
+        let max_nonce = 1_000; 
+
+        // check that the block is mined
+        let result = mine_block(&last_block, Vec::new(), target, max_nonce);
+        assert!(result.is_some());
+
+        // check that the block is valid
+        let mined_block = result.unwrap();
+        assert_eq!(mined_block.index, last_block.index + 1);
+        assert_eq!(mined_block.previous_hash, last_block.hash);
+        assert!(mined_block.hash.leading_zeros() >= difficulty as u32); 
+    }
+
+    #[test]
+    fn test_mine_block_not_found() {
+        let last_block = create_empty_block();
+
+        // let's use a high difficulty target to never find a block
+        let difficulty = MAX_DIFFICULTY;
+        let target = create_target(difficulty);
+
+        // with a max_nonce so low, we will never find a block
+        // and also the test will end fast
+        let max_nonce = 10; 
+
+        // check that the block is not mined
+        let result = mine_block(&last_block, Vec::new(), target, max_nonce);
+        assert!(result.is_none());
+    }
+
+    fn create_empty_block() -> Block {
+       return Block::new(0, 0, BlockHash::default(), Vec::new());
+    }
 }

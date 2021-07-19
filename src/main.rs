@@ -19,6 +19,8 @@ fn main() {
 
     info!("starting up");
 
+    // These variables are really "Arc" pointers to a shared memory value
+    // So when we clone them, we are only cloning the pointers and not the actual data
     let blockchain = Blockchain::new();
     let transaction_pool = TransactionPool::new();
 

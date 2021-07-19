@@ -12,7 +12,7 @@ pub struct MinerSettings {
 
 // Creates a valid next block for a blockchain
 // Takes into account the index and the hash of the previous block
-fn create_next_block(last_block: Block, transactions: TransactionVec, nonce: u64) -> Block {
+fn create_next_block(last_block: &Block, transactions: TransactionVec, nonce: u64) -> Block {
     let index = (last_block.index + 1) as u64;
     let previous_hash = last_block.hash.clone();
 
@@ -33,7 +33,7 @@ fn create_target(difficulty: usize) -> BlockHash {
 // Returns either a valid block (that satisfies the difficulty) or "None" if no block was found
 fn mine_block(last_block: Block, transactions: TransactionVec, target: BlockHash, max_nonce: u64) -> Option<Block> {
     for nonce in 0..max_nonce {
-        let next_block = create_next_block(last_block.clone(), transactions.clone(), nonce);
+        let next_block = create_next_block(&last_block, transactions.clone(), nonce);
  
         // A valid block must have a hash with enough starting zeroes
         // To check that, we simply compare against a binary data mask
@@ -86,8 +86,6 @@ fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: Trans
 }
 
 pub fn run(settings: MinerSettings, blockchain: Blockchain, transaction_pool: TransactionPool) {
-    // These variables are really "Arc" pointers to a shared memory value
-    // So we are not really cloning the whole blockchain or transaction pool, only the pointers
     let miner_blockchain = blockchain.clone();
     let miner_pool = transaction_pool.clone();
 
@@ -95,4 +93,21 @@ pub fn run(settings: MinerSettings, blockchain: Blockchain, transaction_pool: Tr
     thread::spawn(move || {
         mine(settings, miner_blockchain, miner_pool)
     });
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_next_block() {
+        let block = Block::new(0, 0, BlockHash::default(), Vec::new());
+        let next_block = create_next_block(&block, Vec::new(), 0);
+
+        // the next block must follow the previous one
+        assert_eq!(next_block.index, block.index + 1);
+        assert_eq!(next_block.previous_hash, block.hash);
+    }
+
 }

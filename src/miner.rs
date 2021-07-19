@@ -100,6 +100,9 @@ pub fn run(settings: MinerSettings, blockchain: Blockchain, transaction_pool: Tr
 mod tests {
     use super::*;
 
+    // We use SHA 256 hashes
+    const MAX_DIFFICULTY: usize = 256;
+
     #[test]
     fn test_create_next_block() {
         let block = Block::new(0, 0, BlockHash::default(), Vec::new());
@@ -108,6 +111,24 @@ mod tests {
         // the next block must follow the previous one
         assert_eq!(next_block.index, block.index + 1);
         assert_eq!(next_block.previous_hash, block.hash);
+    }
+
+    #[test]
+    fn test_create_target_valid_difficulty() {
+        // try all possibilities of valid difficulties
+        // the target must have as many leading zeroes
+        for difficulty in 0..MAX_DIFFICULTY {
+            let target = create_target(difficulty);
+            assert_eq!(target.leading_zeros(), difficulty as u32);
+        }  
+    }
+
+    #[test]
+    fn test_create_target_overflowing_difficulty() {
+        // when passing an overflowing difficulty,
+        // it must default to the max difficulty
+        let target = create_target(MAX_DIFFICULTY + 1);
+        assert_eq!(target.leading_zeros(), MAX_DIFFICULTY as u32); 
     }
 
 }

@@ -1,4 +1,4 @@
-use crate::blockchain::{Blockchain, Block, BlockHash};
+use crate::blockchain::{Blockchain, Block, BlockHash, BlockchainError};
 use super::transaction_pool::{TransactionVec, TransactionPool};
 use std::{thread, time};
 
@@ -59,7 +59,7 @@ fn must_stop_mining(settings: &MinerSettings, block_counter: u64) -> bool {
 
 // Try to constanly calculate and append new valid blocks to the blockchain,
 // including all pending transactions in the transaction pool each time
-fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: TransactionPool) {
+fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: TransactionPool) -> Result<(), BlockchainError> {
     info!("starting minining with difficulty {}", settings.difficulty);
     let target = create_target(settings.difficulty);
     
@@ -68,7 +68,7 @@ fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: Trans
     loop {
         if must_stop_mining(&settings, block_counter) {
             info!("block limit reached, stopping mining");
-            break;
+            return Ok(())
         }
 
         // Empty all transactions from the pool, they will be included in the new block
@@ -86,7 +86,7 @@ fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: Trans
         match mining_result {
             Some(block) => {
                 info!("valid block found for index {}", block.index);
-                blockchain.add_block(block.clone());
+                blockchain.add_block(block.clone())?;
                 block_counter = block_counter + 1;
             }
             None => {
@@ -203,7 +203,9 @@ mod tests {
         };
         pool.add_transaction(transaction.clone());
 
-        mine(settings, blockchain.clone(), pool.clone());
+        // mining should be successful
+        let result = mine(settings, blockchain.clone(), pool.clone());
+        assert!(result.is_ok());
 
         // a new block should have been added to the blockchain
         let blocks = blockchain.get_all_blocks();

@@ -7,4 +7,5 @@ mod transaction;
 pub use block::Block;
 pub use block::BlockHash;
 pub use blockchain::Blockchain;
+pub use blockchain::BlockchainError;
 pub use transaction::Transaction;

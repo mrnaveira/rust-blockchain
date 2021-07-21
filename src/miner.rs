@@ -225,6 +225,7 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "No valid block was mined at index `1`")]
     fn test_mine_not_found() {
         // with a max_nonce so low, we should never find a valid block
         let max_blocks = 1;
@@ -234,8 +235,8 @@ mod tests {
         let blockchain = Blockchain::new();
         let pool = TransactionPool::new();
 
-        let result = mine_one_tx(&blockchain, &pool, max_blocks, max_nonce, difficulty);
-        assert!(result.is_err());
+        // should return a BlockNotMined error
+        mine_one_tx(&blockchain, &pool, max_blocks, max_nonce, difficulty).unwrap();
     }
 
     fn create_empty_block() -> Block {

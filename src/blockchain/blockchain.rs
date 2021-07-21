@@ -12,13 +12,13 @@ type SyncedBlockVec = Arc<Mutex<BlockVec>>;
 // Error types to return when trying to add blocks with invalid fields
 #[derive(Error, Debug)]
 pub enum BlockchainError {
-    #[error("invalid index `{0}`")]
+    #[error("Invalid index `{0}`")]
     InvalidIndex(u64),
 
-    #[error("invalid previous_hash `{0}`")]
+    #[error("Invalid previous_hash `{0}`")]
     InvalidPreviousHash(BlockHash),
 
-    #[error("invalid hash `{0}`")]
+    #[error("Invalid hash `{0}`")]
     InvalidHash(BlockHash)
 }
 
@@ -152,6 +152,7 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "Invalid index `2`")]
     fn should_not_let_adding_block_with_invalid_index() {
         let blockchain = Blockchain::new();
 
@@ -161,11 +162,11 @@ mod tests {
         let block = Block::new(invalid_index, 0, previous_hash, Vec::new());
 
         // try adding the invalid block, it return an error
-        let result = blockchain.add_block(block.clone());
-        assert!(result.is_err());
+        blockchain.add_block(block.clone()).unwrap();
     }
 
     #[test]
+    #[should_panic(expected = "Invalid previous_hash `0`")]
     fn should_not_let_adding_block_with_invalid_previous_hash() {
         let blockchain = Blockchain::new();
 
@@ -174,11 +175,11 @@ mod tests {
         let block = Block::new(1, 0, invalid_previous_hash, Vec::new());
 
         // try adding the invalid block, it return an error
-        let result = blockchain.add_block(block.clone());
-        assert!(result.is_err());
+        blockchain.add_block(block.clone()).unwrap();
     }
 
     #[test]
+    #[should_panic(expected = "Invalid hash `0`")]
     fn should_not_let_adding_block_with_invalid_hash() {
         let blockchain = Blockchain::new();
 
@@ -188,7 +189,6 @@ mod tests {
         block.hash = BlockHash::default();
 
         // try adding the invalid block, it return an error
-        let result = blockchain.add_block(block.clone());
-        assert!(result.is_err());
+        blockchain.add_block(block.clone()).unwrap();
     }
 }

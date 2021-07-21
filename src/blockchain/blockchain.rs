@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
+use anyhow::Result;
 
 use crate::blockchain::block::{Block, BlockHash};
 
@@ -65,7 +66,7 @@ impl Blockchain {
     // Tries to append a new block into the blockchain
     // It will validate that the values of the new block are consistend with the blockchain state
     // This operation is safe to be called concurrently from multiple threads
-    pub fn add_block(&self, block: Block) -> Result<(), BlockchainError> {
+    pub fn add_block(&self, block: Block) -> Result<()> {
         // the "blocks" attribute is protected by a Mutex
         // so only one thread at a time can access the value when the lock is held
         // that prevents adding multiple valid blocks at the same time
@@ -75,17 +76,17 @@ impl Blockchain {
  
         // check that the index is valid
         if block.index != last.index + 1 {
-            return Err(BlockchainError::InvalidIndex(block.index));
+            return Err(BlockchainError::InvalidIndex(block.index).into());
         }
 
         // check that the previous_hash is valid
         if block.previous_hash != last.hash {
-            return Err(BlockchainError::InvalidPreviousHash(block.previous_hash));
+            return Err(BlockchainError::InvalidPreviousHash(block.previous_hash).into());
         }
 
         // check that the hash matches the data
         if block.hash != block.calculate_hash() {
-            return Err(BlockchainError::InvalidHash(block.hash));
+            return Err(BlockchainError::InvalidHash(block.hash).into());
         }
 
         // append the block to the end

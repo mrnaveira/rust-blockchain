@@ -1,6 +1,8 @@
-use crate::blockchain::{Blockchain, Block, BlockHash, BlockchainError};
+use crate::blockchain::{Blockchain, Block, BlockHash};
 use super::transaction_pool::{TransactionVec, TransactionPool};
 use std::{thread, time};
+use thiserror::Error;
+use anyhow::Result;
 
 // Wrapper of mining settings
 // Used to group together related values when calling the miner
@@ -9,6 +11,12 @@ pub struct MinerSettings {
     pub max_nonce: u64,
     pub difficulty: usize,
     pub tx_waiting_ms: u64,
+}
+
+#[derive(Error, Debug)]
+pub enum MinerError {
+    #[error("No valid block was mined at index `{0}`")]
+    BlockNotMined(u64),
 }
 
 // Creates a valid next block for a blockchain
@@ -59,7 +67,7 @@ fn must_stop_mining(settings: &MinerSettings, block_counter: u64) -> bool {
 
 // Try to constanly calculate and append new valid blocks to the blockchain,
 // including all pending transactions in the transaction pool each time
-fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: TransactionPool) -> Result<(), BlockchainError> {
+fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: TransactionPool) -> Result<()> {
     info!("starting minining with difficulty {}", settings.difficulty);
     let target = create_target(settings.difficulty);
     
@@ -90,8 +98,9 @@ fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: Trans
                 block_counter = block_counter + 1;
             }
             None => {
-                // TODO: raise exception when a valid block was not found
-                error!("no valid block was found");
+                let index = last_block.index + 1;
+                error!("no valid block was foun for index {}", index);
+                return Err(MinerError::BlockNotMined(index).into());
             }
         }  
     }
@@ -182,29 +191,18 @@ mod tests {
     }
 
     #[test]
-    fn test_mine() {
+    fn test_mine_successful() {
         // settings are enough to find blocks in each iteration
+        let max_blocks = 1;
+        let max_nonce = 1_000; 
         let difficulty = 1;
-        let settings = MinerSettings {
-            max_blocks: 1,
-            max_nonce: 1_000, 
-            difficulty: difficulty,
-            tx_waiting_ms: 10
-        };
 
         let blockchain = Blockchain::new();
         let pool = TransactionPool::new();
 
-        // the pool must have some transactions for the mining to happen
-        let transaction = Transaction {
-            sender: "1".to_string(),
-            recipient: "2".to_string(),
-            amount: 3
-        };
-        pool.add_transaction(transaction.clone());
+        let result = mine_one_tx(&blockchain, &pool, max_blocks, max_nonce, difficulty);
 
         // mining should be successful
-        let result = mine(settings, blockchain.clone(), pool.clone());
         assert!(result.is_ok());
 
         // a new block should have been added to the blockchain
@@ -219,12 +217,25 @@ mod tests {
         // the mined block must include the transaction added previously
         let mined_transactions = &mined_block.transactions;
         assert_eq!(mined_transactions.len(), 1);
-        assert_eq!(mined_transactions[0].amount, transaction.amount);
 
         // the transaction pool must be empty
         // because the transaction was added to the block when mining
         let transactions = pool.pop();
         assert!(transactions.is_empty());
+    }
+
+    #[test]
+    fn test_mine_not_found() {
+        // with a max_nonce so low, we should never find a valid block
+        let max_blocks = 1;
+        let max_nonce = 1; 
+        let difficulty = 30;
+
+        let blockchain = Blockchain::new();
+        let pool = TransactionPool::new();
+
+        let result = mine_one_tx(&blockchain, &pool, max_blocks, max_nonce, difficulty);
+        assert!(result.is_err());
     }
 
     fn create_empty_block() -> Block {
@@ -235,5 +246,30 @@ mod tests {
         assert_eq!(mined_block.index, previous_block.index + 1);
         assert_eq!(mined_block.previous_hash, previous_block.hash);
         assert!(mined_block.hash.leading_zeros() >= difficulty as u32);
+    }
+
+    fn mine_one_tx(
+        blockchain: &Blockchain,
+        pool: &TransactionPool,
+        max_blocks:u64,
+        max_nonce: u64,
+        difficulty: usize
+    ) -> Result<()>{
+        let settings = MinerSettings {
+            max_blocks: max_blocks,
+            max_nonce: max_nonce, 
+            difficulty: difficulty,
+            tx_waiting_ms: 5
+        };
+
+        // the pool must have some transactions for the mining to happen
+        let transaction = Transaction {
+            sender: "1".to_string(),
+            recipient: "2".to_string(),
+            amount: 3
+        };
+        pool.add_transaction(transaction.clone());
+
+        return mine(settings, blockchain.clone(), pool.clone());
     }
 }

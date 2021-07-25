@@ -30,7 +30,7 @@ async fn add_transaction(state: web::Data<ApiState>, transaction_json: web::Json
 }
 
 #[actix_rt::main]
-pub async fn run(port: u16, blockchain: Blockchain, transaction_pool: TransactionPool) -> std::io::Result<()> {
+async fn start_server(port: u16, blockchain: Blockchain, transaction_pool: TransactionPool) -> std::io::Result<()> {
     let url = format!("localhost:{}", port);
     let api_state = web::Data::new(ApiState {
         blockchain: blockchain,
@@ -46,4 +46,13 @@ pub async fn run(port: u16, blockchain: Blockchain, transaction_pool: Transactio
     .bind(url).unwrap()
     .run()
     .await
+}
+
+pub fn run(port: u16, blockchain: &Blockchain, transaction_pool: &TransactionPool) -> std::io::Result<()> {
+    // These variables are really "Arc" pointers to a shared memory value
+    // So when we clone them, we are only cloning the pointers and not the actual data
+    let api_blockchain = blockchain.clone();
+    let api_pool = transaction_pool.clone();
+
+    return start_server(port, api_blockchain, api_pool);
 }

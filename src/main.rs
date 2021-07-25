@@ -19,8 +19,6 @@ fn main() {
 
     info!("starting up");
 
-    // These variables are really "Arc" pointers to a shared memory value
-    // So when we clone them, we are only cloning the pointers and not the actual data
     let blockchain = Blockchain::new();
     let transaction_pool = TransactionPool::new();
 
@@ -31,9 +29,9 @@ fn main() {
         difficulty: config.difficulty,
         tx_waiting_ms: config.tx_waiting_ms
     };
-    miner::run(miner_settings, blockchain.clone(), transaction_pool.clone());
+    miner::run(miner_settings, &blockchain, &transaction_pool);
 
     // start the client REST API
-    api::run(config.client_port, blockchain.clone(), transaction_pool.clone())
+    api::run(config.client_port, &blockchain, &transaction_pool)
         .expect("could not start the API");
 }

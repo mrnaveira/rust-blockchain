@@ -106,7 +106,9 @@ fn mine(settings: MinerSettings, blockchain: Blockchain, transaction_pool: Trans
     }
 }
 
-pub fn run(settings: MinerSettings, blockchain: Blockchain, transaction_pool: TransactionPool) {
+pub fn run(settings: MinerSettings, blockchain: &Blockchain, transaction_pool: &TransactionPool) {
+    // These variables are really "Arc" pointers to a shared memory value
+    // So when we clone them, we are only cloning the pointers and not the actual data
     let miner_blockchain = blockchain.clone();
     let miner_pool = transaction_pool.clone();
 

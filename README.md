@@ -70,8 +70,9 @@ This project implements a simplified PoW algorithm based on hashes, in the line 
 - [x] Transaction pool that holds not realized transactions
 - [x] Basic miner that adds transactions every N seconds
 - [x] Basic PoW implementation: nonce, miner calculates hashes and fixed difficulty
-- [ ] Parallel mining 
+- [ ] Parallel mining
 - [ ] Mining peers communicate new blocks over the network
+- [ ] Blockchain disk storage
 - [ ] Dynamic difficulty (aiming for constant time intervals between blocks)
 - [ ] Block rewards: subsidy and transaction fees
 - [ ] Validate transaction balances

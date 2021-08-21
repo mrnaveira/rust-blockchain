@@ -10,8 +10,7 @@ type StringVec = Vec<String>;
 // It ensures correct typing and that at least they will have a default value
 pub struct Config {
     // Networking settings
-    pub client_port: u16,
-    pub peer_port: u16,
+    pub port: u16,
     pub peers: StringVec,
 
     // Miner settings
@@ -31,8 +30,7 @@ impl Config {
 
         let config = Config {
             // Networking settings
-            client_port: Config::read_envvar::<u16>("CLIENT_PORT", 8000),
-            peer_port:  Config::read_envvar::<u16>("PEER_PORT", 9000),
+            port: Config::read_envvar::<u16>("CLIENT_PORT", 8000),
             peers: Config::read_vec_envvar("PEERS", ",", StringVec::default()),
 
             // Miner settings

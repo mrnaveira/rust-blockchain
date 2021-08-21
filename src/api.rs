@@ -4,37 +4,50 @@ use super::transaction_pool::{TransactionPool};
 
 struct ApiState {
     blockchain: Blockchain,
-    transaction_pool: TransactionPool
+    pool: TransactionPool
 }
 
-// Returns a list of all the blocks in the blockchain
-async fn get_blocks(state: web::Data<ApiState>) -> impl Responder {
-    let blockchain = &state.blockchain;
-    let blocks = blockchain.get_all_blocks();
-
-    HttpResponse::Ok().json(&blocks)
+#[derive(Debug, Clone)]
+pub struct Api {
+    port: u16,
+    blockchain: Blockchain,
+    pool: TransactionPool
 }
 
-// Adds a new transaction to the pool, to be included on the next block
-async fn add_transaction(state: web::Data<ApiState>, transaction_json: web::Json<Transaction>) -> impl Responder {
-    let transaction = Transaction {
-        sender: transaction_json.sender.clone(),
-        recipient: transaction_json.recipient.clone(),
-        amount: transaction_json.amount.clone()
-    };
+impl Api {
 
-    let transaction_pool = &state.transaction_pool;
-    transaction_pool.add_transaction(transaction);
+    pub fn new(
+        port: u16,
+        blockchain: &Blockchain,
+        pool: &TransactionPool
+    ) -> Api {
+        let api = Api {
+            port: port,
+            blockchain: blockchain.clone(),
+            pool: pool.clone(),
+        };
 
-    HttpResponse::Ok()
+        return api;
+    }
+
+    pub fn run(&self) -> std::io::Result<()> {
+        let api_blockchain = self.blockchain.clone();
+        let api_pool = self.pool.clone();
+        return start_server(self.port, api_blockchain, api_pool);
+    }
 }
 
 #[actix_rt::main]
-async fn start_server(port: u16, blockchain: Blockchain, transaction_pool: TransactionPool) -> std::io::Result<()> {
+async fn start_server(
+    port: u16, blockchain: Blockchain,
+    pool: TransactionPool
+) -> std::io::Result<()> {
     let url = format!("localhost:{}", port);
+    // These variables are really "Arc" pointers to a shared memory value
+    // So when we clone them, we are only cloning the pointers and not the actual data
     let api_state = web::Data::new(ApiState {
         blockchain: blockchain,
-        transaction_pool: transaction_pool
+        pool: pool
     });
 
     HttpServer::new(move || {
@@ -48,11 +61,27 @@ async fn start_server(port: u16, blockchain: Blockchain, transaction_pool: Trans
     .await
 }
 
-pub fn run(port: u16, blockchain: &Blockchain, transaction_pool: &TransactionPool) -> std::io::Result<()> {
-    // These variables are really "Arc" pointers to a shared memory value
-    // So when we clone them, we are only cloning the pointers and not the actual data
-    let api_blockchain = blockchain.clone();
-    let api_pool = transaction_pool.clone();
-
-    return start_server(port, api_blockchain, api_pool);
+// Returns a list of all the blocks in the blockchain
+async fn get_blocks(state: web::Data<ApiState>) -> impl Responder {
+    let blockchain = &state.blockchain;
+    let blocks = blockchain.get_all_blocks();
+    
+    HttpResponse::Ok().json(&blocks)
+}
+    
+// Adds a new transaction to the pool, to be included on the next block
+async fn add_transaction(
+    state: web::Data<ApiState>,
+    transaction_json: web::Json<Transaction>
+) -> impl Responder {
+    let transaction = Transaction {
+        sender: transaction_json.sender.clone(),
+        recipient: transaction_json.recipient.clone(),
+        amount: transaction_json.amount.clone()
+    };
+    
+    let pool = &state.pool;
+    pool.add_transaction(transaction);
+    
+    HttpResponse::Ok()
 }

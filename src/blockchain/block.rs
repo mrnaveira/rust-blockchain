@@ -2,7 +2,7 @@ use chrono::prelude::*;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use ethereum_types::U256;
-use serde::{Serialize};
+use serde::Serialize;
 use serde_json;
 
 use crate::blockchain::transaction::Transaction;
@@ -23,9 +23,13 @@ pub struct Block {
 }
 
 impl Block {
-
     // Create a brand new block. The hash value will be caclulated and set automatically.
-    pub fn new(index: u64, nonce: u64, previous_hash: BlockHash, transactions: Vec<Transaction>) -> Block { 
+    pub fn new(
+        index: u64,
+        nonce: u64,
+        previous_hash: BlockHash,
+        transactions: Vec<Transaction>,
+    ) -> Block {
         let mut block = Block {
             index: index,
             timestamp: Utc::now().timestamp_millis(),
@@ -52,7 +56,7 @@ impl Block {
 
         hasher.input_str(&serialized);
         hasher.result(&mut byte_hash);
-    
+
         let hash = U256::from(byte_hash);
         hash
     }

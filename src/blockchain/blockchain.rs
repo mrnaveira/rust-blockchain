@@ -1,6 +1,6 @@
+use anyhow::Result;
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
-use anyhow::Result;
 
 use crate::blockchain::block::{Block, BlockHash};
 
@@ -19,7 +19,7 @@ pub enum BlockchainError {
     InvalidPreviousHash(BlockHash),
 
     #[error("Invalid hash `{0}`")]
-    InvalidHash(BlockHash)
+    InvalidHash(BlockHash),
 }
 
 // Struct that holds all the blocks in the blockhain
@@ -32,7 +32,6 @@ pub struct Blockchain {
 // Basic operations in the blockchain are encapsulated in the implementation
 // Encapsulates concurrency concerns, so external callers do not need to know how it's handled
 impl Blockchain {
-
     // Creates a brand new blockchain with a genesis block
     pub fn new() -> Blockchain {
         let genesis_block = Blockchain::create_genesis_block();
@@ -40,7 +39,7 @@ impl Blockchain {
         // add the genesis block to the synced vec of blocks
         let mut blocks = BlockVec::default();
         blocks.push(genesis_block);
-        let synced_blocks =  Arc::new(Mutex::new(blocks));
+        let synced_blocks = Arc::new(Mutex::new(blocks));
 
         let blockchain = Blockchain {
             blocks: synced_blocks,
@@ -73,7 +72,7 @@ impl Blockchain {
         // preserving the correct order of indexes and hashes of the blockchain
         let mut blocks = self.blocks.lock().unwrap();
         let last = &blocks[blocks.len() - 1];
- 
+
         // check that the index is valid
         if block.index != last.index + 1 {
             return Err(BlockchainError::InvalidIndex(block.index).into());
@@ -106,7 +105,9 @@ impl Blockchain {
 }
 
 impl Default for Blockchain {
-    fn default() -> Self { Blockchain::new() }
+    fn default() -> Self {
+        Blockchain::new()
+    }
 }
 
 #[cfg(test)]
@@ -119,7 +120,7 @@ mod tests {
 
         // check that a new blockchain has one and only one block
         let blocks = blockchain.get_all_blocks();
-        assert_eq!(blocks.len(), 1);    
+        assert_eq!(blocks.len(), 1);
 
         // check that the last block is in the blockchain
         let block = blockchain.get_last_block();

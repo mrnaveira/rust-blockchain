@@ -16,19 +16,18 @@ pub struct Api {
 
 impl Api {
     pub fn new(port: u16, blockchain: &Blockchain, pool: &TransactionPool) -> Api {
-        let api = Api {
-            port: port,
+        Api {
+            port,
             blockchain: blockchain.clone(),
             pool: pool.clone(),
-        };
-
-        return api;
+        }
     }
 
     pub fn run(&self) -> std::io::Result<()> {
         let api_blockchain = self.blockchain.clone();
         let api_pool = self.pool.clone();
-        return start_server(self.port, api_blockchain, api_pool);
+
+        start_server(self.port, api_blockchain, api_pool)
     }
 }
 
@@ -41,10 +40,7 @@ async fn start_server(
     let url = format!("localhost:{}", port);
     // These variables are really "Arc" pointers to a shared memory value
     // So when we clone them, we are only cloning the pointers and not the actual data
-    let api_state = web::Data::new(ApiState {
-        blockchain: blockchain,
-        pool: pool,
-    });
+    let api_state = web::Data::new(ApiState { blockchain, pool });
 
     HttpServer::new(move || {
         App::new()
@@ -74,7 +70,7 @@ async fn add_transaction(
     let transaction = Transaction {
         sender: transaction_json.sender.clone(),
         recipient: transaction_json.recipient.clone(),
-        amount: transaction_json.amount.clone(),
+        amount: transaction_json.amount,
     };
 
     let pool = &state.pool;

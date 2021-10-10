@@ -1,4 +1,8 @@
 mod block;
+// In this case, we want "blockchain" to be
+// the name of the parent module that includes
+// a "blockchain" file as well
+#[allow(clippy::module_inception)]
 mod blockchain;
 mod transaction;
 

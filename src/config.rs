@@ -27,7 +27,7 @@ impl Config {
     pub fn read() -> Config {
         dotenv().ok();
 
-        let config = Config {
+        Config {
             // Networking settings
             port: Config::read_envvar::<u16>("CLIENT_PORT", 8000),
             peers: Config::read_vec_envvar("PEERS", ",", StringVec::default()),
@@ -37,24 +37,22 @@ impl Config {
             max_nonce: Config::read_envvar::<u64>("MAX_NONCE", 1_000_000),
             difficulty: Config::read_envvar::<usize>("DIFFICULTY", 10),
             tx_waiting_ms: Config::read_envvar::<u64>("TRANSACTION_WAITING_MS", 10000),
-        };
-
-        return config;
+        }
     }
 
     // Parses a singular value from a environment variable, accepting a default value if missing
     fn read_envvar<T: FromStr>(key: &str, default_value: T) -> T {
         match env::var(key) {
-            Ok(val) => return val.parse::<T>().unwrap_or(default_value),
-            Err(_e) => return default_value,
+            Ok(val) => val.parse::<T>().unwrap_or(default_value),
+            Err(_e) => default_value,
         }
     }
 
     // Parses a multiple value (Vec) from a environment variable, accepting a default value if missing
     fn read_vec_envvar(key: &str, separator: &str, default_value: StringVec) -> StringVec {
         match env::var(key) {
-            Ok(val) => return val.trim().split(separator).map(str::to_string).collect(),
-            Err(_e) => return default_value,
+            Ok(val) => val.trim().split(separator).map(str::to_string).collect(),
+            Err(_e) => default_value,
         }
     }
 }

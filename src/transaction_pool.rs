@@ -18,17 +18,15 @@ pub struct TransactionPool {
 impl TransactionPool {
     // Creates a empty transaction pool
     pub fn new() -> TransactionPool {
-        let pool = TransactionPool {
+        TransactionPool {
             transactions: SyncedTransactionVec::default(),
-        };
-
-        return pool;
+        }
     }
 
     // Adds a new transaction to the pool
     pub fn add_transaction(&self, transaction: Transaction) {
         let mut transactions = self.transactions.lock().unwrap();
-        transactions.push(transaction.clone());
+        transactions.push(transaction);
         info!("transaction added");
     }
 
@@ -42,7 +40,7 @@ impl TransactionPool {
         let transactions_clone = transactions.clone();
         transactions.clear();
 
-        return transactions_clone;
+        transactions_clone
     }
 }
 

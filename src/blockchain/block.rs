@@ -3,7 +3,6 @@ use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use ethereum_types::U256;
 use serde::Serialize;
-use serde_json;
 
 use crate::blockchain::transaction::Transaction;
 
@@ -31,12 +30,12 @@ impl Block {
         transactions: Vec<Transaction>,
     ) -> Block {
         let mut block = Block {
-            index: index,
+            index,
             timestamp: Utc::now().timestamp_millis(),
-            nonce: nonce,
-            previous_hash: previous_hash,
+            nonce,
+            previous_hash,
             hash: BlockHash::default(),
-            transactions: transactions,
+            transactions,
         };
         block.hash = block.calculate_hash();
 
@@ -57,7 +56,6 @@ impl Block {
         hasher.input_str(&serialized);
         hasher.result(&mut byte_hash);
 
-        let hash = U256::from(byte_hash);
-        hash
+        U256::from(byte_hash)
     }
 }

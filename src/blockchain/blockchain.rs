@@ -11,6 +11,7 @@ type SyncedBlockVec = Arc<Mutex<BlockVec>>;
 
 // Error types to return when trying to add blocks with invalid fields
 #[derive(Error, Debug)]
+#[allow(clippy::enum_variant_names)]
 pub enum BlockchainError {
     #[error("Invalid index `{0}`")]
     InvalidIndex(u64),
@@ -41,25 +42,23 @@ impl Blockchain {
         blocks.push(genesis_block);
         let synced_blocks = Arc::new(Mutex::new(blocks));
 
-        let blockchain = Blockchain {
+        Blockchain {
             blocks: synced_blocks,
-        };
-
-        return blockchain;
+        }
     }
 
     // Returns a copy of the most recent block in the blockchain
     pub fn get_last_block(&self) -> Block {
         let blocks = self.blocks.lock().unwrap();
-        let last_block = blocks[blocks.len() - 1].clone();
 
-        return last_block;
+        blocks[blocks.len() - 1].clone()
     }
 
     // Returns a copy of the whole list of blocks
     pub fn get_all_blocks(&self) -> BlockVec {
         let blocks = self.blocks.lock().unwrap();
-        return blocks.clone();
+
+        blocks.clone()
     }
 
     // Tries to append a new block into the blockchain
@@ -89,7 +88,7 @@ impl Blockchain {
         }
 
         // append the block to the end
-        blocks.push(block.clone());
+        blocks.push(block);
 
         Ok(())
     }

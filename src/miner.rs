@@ -29,16 +29,14 @@ impl Miner {
         blockchain: &Blockchain,
         pool: &TransactionPool,
     ) -> Miner {
-        let miner = Miner {
-            max_blocks: max_blocks,
-            max_nonce: max_nonce,
-            difficulty: difficulty,
-            tx_waiting_ms: tx_waiting_ms,
+        Miner {
+            max_blocks,
+            max_nonce,
+            difficulty,
+            tx_waiting_ms,
             blockchain: blockchain.clone(),
             pool: pool.clone(),
-        };
-
-        return miner;
+        }
     }
 
     // Try to constanly calculate and append new valid blocks to the blockchain,
@@ -66,17 +64,13 @@ impl Miner {
 
             // try to find a valid next block of the blockchain
             let last_block = self.blockchain.get_last_block();
-            let mining_result = self.mine_block(
-                &last_block,
-                transactions.clone(),
-                target.clone(),
-                self.max_nonce,
-            );
+            let mining_result =
+                self.mine_block(&last_block, transactions.clone(), target, self.max_nonce);
             match mining_result {
                 Some(block) => {
                     info!("valid block found for index {}", block.index);
                     self.blockchain.add_block(block.clone())?;
-                    block_counter = block_counter + 1;
+                    block_counter += 1;
                 }
                 None => {
                     let index = last_block.index + 1;
@@ -90,14 +84,12 @@ impl Miner {
     // Creates binary data mask with the amount of left padding zeroes indicated by the "difficulty" value
     // Used to easily compare if a newly created block has a hash that matches the difficulty
     fn create_target(&self, difficulty: usize) -> BlockHash {
-        let target = BlockHash::MAX >> difficulty;
-
-        target
+        BlockHash::MAX >> difficulty
     }
 
     // check if we have hit the limit of mined blocks (if the limit is set)
     fn must_stop_mining(&self, block_counter: u64) -> bool {
-        return self.max_blocks > 0 && block_counter >= self.max_blocks;
+        self.max_blocks > 0 && block_counter >= self.max_blocks
     }
 
     // Suspend the execution of the thread by a particular amount of milliseconds
@@ -117,7 +109,7 @@ impl Miner {
         max_nonce: u64,
     ) -> Option<Block> {
         for nonce in 0..max_nonce {
-            let next_block = self.create_next_block(&last_block, transactions.clone(), nonce);
+            let next_block = self.create_next_block(last_block, transactions.clone(), nonce);
 
             // A valid block must have a hash with enough starting zeroes
             // To check that, we simply compare against a binary data mask
@@ -138,7 +130,7 @@ impl Miner {
         nonce: u64,
     ) -> Block {
         let index = (last_block.index + 1) as u64;
-        let previous_hash = last_block.hash.clone();
+        let previous_hash = last_block.hash;
 
         // hash of the new block is automatically calculated on creation
         Block::new(index, nonce, previous_hash, transactions)

@@ -60,15 +60,13 @@ fn create_miner_thread(
         config.max_nonce,
         config.difficulty,
         config.tx_waiting_ms,
-        &blockchain,
-        &pool,
+        blockchain,
+        pool,
     );
 
-    let handler = thread::spawn(move || {
+    thread::spawn(move || {
         miner.mine().unwrap();
-    });
-
-    return handler;
+    })
 }
 
 // starts the api in a separate thread and returns the handler
@@ -77,13 +75,11 @@ fn create_api_thread(
     blockchain: &Blockchain,
     pool: &TransactionPool,
 ) -> std::thread::JoinHandle<()> {
-    let api = Api::new(config.port, &blockchain, &pool);
+    let api = Api::new(config.port, blockchain, pool);
 
-    let handler = thread::spawn(move || {
+    thread::spawn(move || {
         api.run().unwrap();
-    });
-
-    return handler;
+    })
 }
 
 // wait for all children threads to finish

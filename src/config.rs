@@ -17,13 +17,12 @@ pub struct Config {
     pub max_blocks: u64,
     pub max_nonce: u64,
     pub difficulty: usize,
-    pub tx_waiting_ms: u64
+    pub tx_waiting_ms: u64,
 }
 
 // The implementation reads the values from environment variables
 // If a value is missing then it enforces a default value
 impl Config {
-
     // Parse and return configuration values from environment variables
     pub fn read() -> Config {
         dotenv().ok();
@@ -39,7 +38,7 @@ impl Config {
             difficulty: Config::read_envvar::<usize>("DIFFICULTY", 10),
             tx_waiting_ms: Config::read_envvar::<u64>("TRANSACTION_WAITING_MS", 10000),
         };
-        
+
         return config;
     }
 
@@ -47,7 +46,7 @@ impl Config {
     fn read_envvar<T: FromStr>(key: &str, default_value: T) -> T {
         match env::var(key) {
             Ok(val) => return val.parse::<T>().unwrap_or(default_value),
-            Err(_e) => return default_value
+            Err(_e) => return default_value,
         }
     }
 
@@ -55,7 +54,7 @@ impl Config {
     fn read_vec_envvar(key: &str, separator: &str, default_value: StringVec) -> StringVec {
         match env::var(key) {
             Ok(val) => return val.trim().split(separator).map(str::to_string).collect(),
-            Err(_e) => return default_value
+            Err(_e) => return default_value,
         }
     }
 }

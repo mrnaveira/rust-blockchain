@@ -1,19 +1,19 @@
 #[macro_use]
 extern crate log;
 
-mod config;
-mod logger;
 mod api;
 mod blockchain;
+mod config;
+mod logger;
 mod miner;
 mod transaction_pool;
 
 use api::Api;
-use config::Config;
 use blockchain::Blockchain;
+use config::Config;
 use miner::Miner;
-use transaction_pool::TransactionPool;
 use std::thread;
+use transaction_pool::TransactionPool;
 
 fn main() {
     logger::init();
@@ -53,7 +53,7 @@ fn set_ctrlc_handler() {
 fn create_miner_thread(
     config: &Config,
     blockchain: &Blockchain,
-    pool: &TransactionPool
+    pool: &TransactionPool,
 ) -> std::thread::JoinHandle<()> {
     let miner = Miner::new(
         config.max_blocks,
@@ -75,13 +75,9 @@ fn create_miner_thread(
 fn create_api_thread(
     config: &Config,
     blockchain: &Blockchain,
-    pool: &TransactionPool
+    pool: &TransactionPool,
 ) -> std::thread::JoinHandle<()> {
-    let api = Api::new(
-        config.port,
-        &blockchain,
-        &pool,
-    );
+    let api = Api::new(config.port, &blockchain, &pool);
 
     let handler = thread::spawn(move || {
         api.run().unwrap();

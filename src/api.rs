@@ -1,26 +1,21 @@
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use super::transaction_pool::TransactionPool;
 use crate::blockchain::{Blockchain, Transaction};
-use super::transaction_pool::{TransactionPool};
+use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 
 struct ApiState {
     blockchain: Blockchain,
-    pool: TransactionPool
+    pool: TransactionPool,
 }
 
 #[derive(Debug, Clone)]
 pub struct Api {
     port: u16,
     blockchain: Blockchain,
-    pool: TransactionPool
+    pool: TransactionPool,
 }
 
 impl Api {
-
-    pub fn new(
-        port: u16,
-        blockchain: &Blockchain,
-        pool: &TransactionPool
-    ) -> Api {
+    pub fn new(port: u16, blockchain: &Blockchain, pool: &TransactionPool) -> Api {
         let api = Api {
             port: port,
             blockchain: blockchain.clone(),
@@ -39,15 +34,16 @@ impl Api {
 
 #[actix_rt::main]
 async fn start_server(
-    port: u16, blockchain: Blockchain,
-    pool: TransactionPool
+    port: u16,
+    blockchain: Blockchain,
+    pool: TransactionPool,
 ) -> std::io::Result<()> {
     let url = format!("localhost:{}", port);
     // These variables are really "Arc" pointers to a shared memory value
     // So when we clone them, we are only cloning the pointers and not the actual data
     let api_state = web::Data::new(ApiState {
         blockchain: blockchain,
-        pool: pool
+        pool: pool,
     });
 
     HttpServer::new(move || {
@@ -56,7 +52,8 @@ async fn start_server(
             .route("/blocks", web::get().to(get_blocks))
             .route("/transactions", web::post().to(add_transaction))
     })
-    .bind(url).unwrap()
+    .bind(url)
+    .unwrap()
     .run()
     .await
 }
@@ -65,23 +62,23 @@ async fn start_server(
 async fn get_blocks(state: web::Data<ApiState>) -> impl Responder {
     let blockchain = &state.blockchain;
     let blocks = blockchain.get_all_blocks();
-    
+
     HttpResponse::Ok().json(&blocks)
 }
-    
+
 // Adds a new transaction to the pool, to be included on the next block
 async fn add_transaction(
     state: web::Data<ApiState>,
-    transaction_json: web::Json<Transaction>
+    transaction_json: web::Json<Transaction>,
 ) -> impl Responder {
     let transaction = Transaction {
         sender: transaction_json.sender.clone(),
         recipient: transaction_json.recipient.clone(),
-        amount: transaction_json.amount.clone()
+        amount: transaction_json.amount.clone(),
     };
-    
+
     let pool = &state.pool;
     pool.add_transaction(transaction);
-    
+
     HttpResponse::Ok()
 }

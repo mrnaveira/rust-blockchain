@@ -1,5 +1,5 @@
+use crate::blockchain::Transaction;
 use std::sync::{Arc, Mutex};
-use crate::blockchain::{Transaction};
 
 pub type TransactionVec = Vec<Transaction>;
 
@@ -10,19 +10,18 @@ type SyncedTransactionVec = Arc<Mutex<TransactionVec>>;
 // Multiple threads can read/write concurrently to the pool
 #[derive(Debug, Clone)]
 pub struct TransactionPool {
-    transactions: SyncedTransactionVec
+    transactions: SyncedTransactionVec,
 }
 
 // Basic operations in the transaction pool are encapsulated in the implementation
 // Encapsulates concurrency concerns, so external callers do not need to know how it's handled
 impl TransactionPool {
-
     // Creates a empty transaction pool
     pub fn new() -> TransactionPool {
         let pool = TransactionPool {
-            transactions: SyncedTransactionVec::default()
+            transactions: SyncedTransactionVec::default(),
         };
-        
+
         return pool;
     }
 
@@ -46,7 +45,6 @@ impl TransactionPool {
         return transactions_clone;
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -103,7 +101,7 @@ mod tests {
         Transaction {
             sender: "1".to_string(),
             recipient: "2".to_string(),
-            amount: amount
+            amount: amount,
         }
     }
-}    
+}

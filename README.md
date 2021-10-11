@@ -24,6 +24,8 @@ $ ./target/release/rust_blockchain
 
 The application will start mining and listening on port 8000 for incoming client requests via REST API.
 
+For development setup, check the [development setup section](#development-setup).
+
 ## Client REST API
 The application provides a REST API for clients to operate with the blockchain.
 
@@ -61,6 +63,16 @@ This project implements a simplified PoW algorithm based on hashes, in the line 
 2. The block contains the valid index and timestamp, as well as the **hash of the previous block** to maintain order.
 3. Iterate the **nonce** value until the hash of the whole block satisfies the difficulty constraint, which is to be less than a target value. The difficulty target is fixed for the execution of the server, but in a real project we would want dynamic difficulty adjusted in runtime to have constant time intervals between blocks.
 4. When a valid block is found, add it to the blockchain and repeat from step 1 to create the next block.
+
+## Development setup
+
+This project uses [cargo-husky](https://github.com/rhysd/cargo-husky) to setup a Git pre-commit hook to check code style (using [clippy](https://github.com/rust-lang/rust-clippy) and [rustfmt](https://github.com/rust-lang/rustfmt)), cargo dependencies and run all tests. If any of those tasks fails, the hook prevents you to commit the changes.
+
+To automatically create the hooks in your local repository, simply run all tests the first time:
+```bash
+# Run all tests
+$ cargo test
+```
 
 ## Roadmap
 

@@ -1,4 +1,7 @@
 # rust-blockchain
+
+![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/build.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/lint.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/test.yaml/badge.svg) 
+
 A simple blockchain example written in Rust:
 * Defines data structures to model a minimum blockchain
 * Mines new blocks in a separate thread, running a Proof of Work algorithm with a fixed difficulty

@@ -31,7 +31,7 @@ impl Api {
     }
 }
 
-#[actix_rt::main]
+#[actix_web::main]
 async fn start_server(
     port: u16,
     blockchain: Blockchain,

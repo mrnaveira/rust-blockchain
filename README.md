@@ -84,7 +84,9 @@ There are also multiple GitHub Actions (using [actions-rs](https://github.com/ac
 
 In this project, the `main` thread spawns two OS threads:
 * One for the **miner**. As mining is very CPU intensive, we want a dedicated OS thread to not slow down other operations in the application.
-* Another thread for the **REST API**. The API uses `actix-web`, which internally uses `tokio`, so it's optimized for asynchronous operations. Having the API in a separate OS thread from the miner allows the `tokio` runtime to be executed parallel to it.
+* Another thread for the **REST API**. The API uses [`actix-web`](https://github.com/actix/actix-web), which internally uses [`tokio`](https://crates.io/crates/tokio), so it's optimized for asynchronous operations. Having the API in a separate OS thread from the miner allows the `tokio` runtime to be executed parallel to it.
+
+Thread spawning and handling is implemented using [`crossbeam-utils`](https://crates.io/crates/crossbeam-utils) to reduce boilerplate code from the standard library.
 
 Also, both the miner and the API must **share** data, specifically the **block list** and the **transaction pool**. As they are accessed from different threads, those data structures are implement by using `Arc<Mutex>` to allow multiple concurrent writes and reads in a safe way.
 

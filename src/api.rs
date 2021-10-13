@@ -1,5 +1,8 @@
 use super::transaction_pool::TransactionPool;
-use crate::blockchain::{Blockchain, Transaction};
+use crate::{
+    blockchain::{Blockchain, Transaction},
+    shared_data::SharedData,
+};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 
 struct ApiState {
@@ -15,11 +18,11 @@ pub struct Api {
 }
 
 impl Api {
-    pub fn new(port: u16, blockchain: &Blockchain, pool: &TransactionPool) -> Api {
+    pub fn new(data: &SharedData) -> Api {
         Api {
-            port,
-            blockchain: blockchain.clone(),
-            pool: pool.clone(),
+            port: data.config.port,
+            blockchain: data.blockchain.clone(),
+            pool: data.pool.clone(),
         }
     }
 

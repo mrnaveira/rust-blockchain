@@ -1,5 +1,8 @@
 use super::transaction_pool::{TransactionPool, TransactionVec};
-use crate::blockchain::{Block, BlockHash, Blockchain};
+use crate::{
+    blockchain::{Block, BlockHash, Blockchain},
+    shared_data::SharedData,
+};
 use anyhow::Result;
 use std::{thread, time};
 use thiserror::Error;
@@ -21,21 +24,14 @@ pub struct Miner {
 }
 
 impl Miner {
-    pub fn new(
-        max_blocks: u64,
-        max_nonce: u64,
-        difficulty: usize,
-        tx_waiting_ms: u64,
-        blockchain: &Blockchain,
-        pool: &TransactionPool,
-    ) -> Miner {
+    pub fn new(data: &SharedData) -> Miner {
         Miner {
-            max_blocks,
-            max_nonce,
-            difficulty,
-            tx_waiting_ms,
-            blockchain: blockchain.clone(),
-            pool: pool.clone(),
+            max_blocks: data.config.max_blocks,
+            max_nonce: data.config.max_nonce,
+            difficulty: data.config.difficulty,
+            tx_waiting_ms: data.config.tx_waiting_ms,
+            blockchain: data.blockchain.clone(),
+            pool: data.pool.clone(),
         }
     }
 
@@ -279,14 +275,14 @@ mod tests {
         let blockchain = Blockchain::new();
         let pool = TransactionPool::new();
 
-        return Miner::new(
+        return Miner {
             max_blocks,
             max_nonce,
             difficulty,
             tx_waiting_ms,
-            &blockchain,
-            &pool,
-        );
+            blockchain,
+            pool,
+        };
     }
 
     fn create_empty_block() -> Block {

@@ -25,9 +25,9 @@ $ cargo build --release
 $ ./target/release/rust_blockchain
 ```
 
-The application will start mining and listening on port 8000 for incoming client requests via REST API.
+The application will start mining and listening on port `8000` for incoming client requests via a REST API. To change any environment variable (port, mining parameters, etc.) refer to the `.env.example` file.
 
-For development setup, check the [development setup section](#development-setup).
+For development setup, check the [development notes section](#development-setup).
 
 ## Client REST API
 The application provides a REST API for clients to operate with the blockchain.
@@ -67,15 +67,18 @@ This project implements a simplified PoW algorithm based on hashes, in the line 
 3. Iterate the **nonce** value until the hash of the whole block satisfies the difficulty constraint, which is to be less than a target value. The difficulty target is fixed for the execution of the server, but in a real project we would want dynamic difficulty adjusted in runtime to have constant time intervals between blocks.
 4. When a valid block is found, add it to the blockchain and repeat from step 1 to create the next block.
 
-## Development setup
+## Development notes
 
+### Git hooks
 This project uses [cargo-husky](https://github.com/rhysd/cargo-husky) to setup a Git pre-commit hook to check code style (using [clippy](https://github.com/rust-lang/rust-clippy) and [rustfmt](https://github.com/rust-lang/rustfmt)), cargo dependencies and run all tests. If any of those tasks fails, the hook prevents you to commit the changes.
 
-To automatically create the hooks in your local repository, simply run all tests the first time:
+To automatically create the hooks in your local git repository, simply run all tests the first time:
 ```bash
-# Run all tests
 $ cargo test
 ```
+
+### GitHub Actions
+There are also multiple GitHub Actions (using [actions-rs](https://github.com/actions-rs)) under the `.github/workflows` folder, as a form of CI. On each commit or PR they perform similar checks as the Git hooks (clippy/rustfmt, dependencies/build and test). The results are displayed as badges below the title of this README.
 
 ## Roadmap
 

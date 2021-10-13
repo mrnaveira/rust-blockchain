@@ -80,6 +80,14 @@ $ cargo test
 ### GitHub Actions
 There are also multiple GitHub Actions (using [actions-rs](https://github.com/actions-rs)) under the `.github/workflows` folder, as a form of CI. On each commit or PR they perform similar checks as the Git hooks (clippy/rustfmt, dependencies/build and test). The results are displayed as badges below the title of this README.
 
+### Concurrency implementation
+
+In this project, the `main` thread spawns two OS threads:
+* One for the **miner**. As mining is very CPU intensive, we want a dedicated OS thread to not slow down other operations in the application.
+* Another thread for the **REST API**. The API uses `actix-web`, which internally uses `tokio`, so it's optimized for asynchronous operations. Having the API in a separate OS thread from the miner allows the `tokio` runtime to be executed parallel to it.
+
+Also, both the miner and the API must **share** data, specifically the **block list** and the **transaction pool**. As they are accessed from different threads, those data structures are implement by using `Arc<Mutex>` to allow multiple concurrent writes and reads in a safe way.
+
 ## Roadmap
 
 - [x] Boilerplate REST API in Rust

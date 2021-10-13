@@ -82,7 +82,8 @@ fn create_api_thread(
     })
 }
 
-// wait for all children threads to finish
+// wait for all children threads to finish.
+// if any child thread returns an error, it will be propagated up and cause a panic
 fn blocking_wait(handles: Vec<std::thread::JoinHandle<()>>) {
     for handle in handles {
         handle.join().unwrap();

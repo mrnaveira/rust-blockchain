@@ -1,8 +1,9 @@
 use crate::{
     model::{Blockchain, Transaction, TransactionPool},
-    shared_data::SharedData,
+    util::{execution::Runnable, Context},
 };
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use anyhow::Result;
 
 struct ApiState {
     blockchain: Blockchain,
@@ -16,16 +17,8 @@ pub struct Api {
     pool: TransactionPool,
 }
 
-impl Api {
-    pub fn new(data: &SharedData) -> Api {
-        Api {
-            port: data.config.port,
-            blockchain: data.blockchain.clone(),
-            pool: data.pool.clone(),
-        }
-    }
-
-    pub fn run(&self) -> std::io::Result<()> {
+impl Runnable for Api {
+    fn run(&self) -> Result<()> {
         let api_blockchain = self.blockchain.clone();
         let api_pool = self.pool.clone();
 
@@ -33,12 +26,18 @@ impl Api {
     }
 }
 
+impl Api {
+    pub fn new(context: &Context) -> Api {
+        Api {
+            port: context.config.port,
+            blockchain: context.blockchain.clone(),
+            pool: context.pool.clone(),
+        }
+    }
+}
+
 #[actix_web::main]
-async fn start_server(
-    port: u16,
-    blockchain: Blockchain,
-    pool: TransactionPool,
-) -> std::io::Result<()> {
+async fn start_server(port: u16, blockchain: Blockchain, pool: TransactionPool) -> Result<()> {
     let url = format!("localhost:{}", port);
     // These variables are really "Arc" pointers to a shared memory value
     // So when we clone them, we are only cloning the pointers and not the actual data
@@ -53,7 +52,9 @@ async fn start_server(
     .bind(url)
     .unwrap()
     .run()
-    .await
+    .await?;
+
+    Ok(())
 }
 
 // Returns a list of all the blocks in the blockchain

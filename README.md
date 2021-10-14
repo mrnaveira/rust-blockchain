@@ -43,7 +43,7 @@ The file `doc/rest_api.postman_collection.json` contains a Postman collection wi
 
 In a blockchain, transactions are grouped into blocks. Aside from transactions, a block contains metadata needed to secure and maintain the sequence in the chain. This sequence of blocks is key to allow transactions to occur in order.
 
-The `blockchain` module in this project contains the data structures to model the blockchain, as described in the next diagram:
+The `model` module in this project contains the data structures to model the blockchain, as described in the next diagram:
 
 ![Blockchain structure diagram](./doc/blockchain_structure.png)
 

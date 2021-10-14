@@ -1,6 +1,6 @@
 use crate::{
     model::{Block, BlockHash, Blockchain, TransactionPool, TransactionVec},
-    shared_data::SharedData,
+    util::{execution::Runnable, Context},
 };
 use anyhow::Result;
 use std::{thread, time};
@@ -22,15 +22,21 @@ pub struct Miner {
     pool: TransactionPool,
 }
 
+impl Runnable for Miner {
+    fn run(&self) -> Result<()> {
+        self.mine()
+    }
+}
+
 impl Miner {
-    pub fn new(data: &SharedData) -> Miner {
+    pub fn new(context: &Context) -> Miner {
         Miner {
-            max_blocks: data.config.max_blocks,
-            max_nonce: data.config.max_nonce,
-            difficulty: data.config.difficulty,
-            tx_waiting_ms: data.config.tx_waiting_ms,
-            blockchain: data.blockchain.clone(),
-            pool: data.pool.clone(),
+            max_blocks: context.config.max_blocks,
+            max_nonce: context.config.max_nonce,
+            difficulty: context.config.difficulty,
+            tx_waiting_ms: context.config.tx_waiting_ms,
+            blockchain: context.blockchain.clone(),
+            pool: context.pool.clone(),
         }
     }
 

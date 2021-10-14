@@ -1,7 +1,7 @@
-use crate::config::Config;
+use super::Config;
 use crate::model::{Blockchain, TransactionPool};
 
-pub struct SharedData {
+pub struct Context {
     pub config: Config,
     pub blockchain: Blockchain,
     pub pool: TransactionPool,

@@ -2,52 +2,34 @@
 extern crate log;
 
 mod api;
-mod config;
-mod logger;
 mod miner;
 mod model;
-mod shared_data;
+mod util;
 
 use api::Api;
-use config::Config;
-use crossbeam_utils::thread;
 use miner::Miner;
 use model::{Blockchain, TransactionPool};
-use shared_data::SharedData;
+use util::{execution, initialize_logger, set_ctrlc_handler, Config, Context};
 
 fn main() {
-    logger::init();
+    initialize_logger();
     info!("starting up");
 
+    // quit the program when the user inputs Ctrl-C
     set_ctrlc_handler();
 
     // initialize shared data values
-    let shared_data = SharedData {
+    let context = Context {
         config: Config::read(),
         blockchain: Blockchain::new(),
         pool: TransactionPool::new(),
     };
 
     // initialize the miner and rest api
-    let miner = Miner::new(&shared_data);
-    let api = Api::new(&shared_data);
+    let miner = Miner::new(&context);
+    let api = Api::new(&context);
 
-    // run the miner and rest api in separate threads
-    thread::scope(|s| {
-        s.spawn(move |_| {
-            miner.mine().unwrap();
-        });
-        s.spawn(move |_| {
-            api.run().unwrap();
-        });
-    })
-    .unwrap();
-}
-
-// Quit the program when the user inputs Ctrl-C
-fn set_ctrlc_handler() {
-    ctrlc::set_handler(move || {
-        std::process::exit(0);
-    })
-    .expect("Error setting Ctrl-C handler");
+    // miner and api run in separate threads
+    // because mining is very cpu intensive
+    execution::run_in_parallel(vec![&miner, &api]);
 }

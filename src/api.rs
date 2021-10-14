@@ -1,6 +1,5 @@
-use super::transaction_pool::TransactionPool;
 use crate::{
-    blockchain::{Blockchain, Transaction},
+    model::{Blockchain, Transaction, TransactionPool},
     shared_data::SharedData,
 };
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};

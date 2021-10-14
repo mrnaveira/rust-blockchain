@@ -2,20 +2,18 @@
 extern crate log;
 
 mod api;
-mod blockchain;
 mod config;
 mod logger;
 mod miner;
+mod model;
 mod shared_data;
-mod transaction_pool;
 
 use api::Api;
-use blockchain::Blockchain;
 use config::Config;
 use crossbeam_utils::thread;
 use miner::Miner;
+use model::{Blockchain, TransactionPool};
 use shared_data::SharedData;
-use transaction_pool::TransactionPool;
 
 fn main() {
     logger::init();

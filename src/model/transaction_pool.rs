@@ -1,4 +1,4 @@
-use crate::blockchain::Transaction;
+use super::Transaction;
 use std::sync::{Arc, Mutex};
 
 pub type TransactionVec = Vec<Transaction>;

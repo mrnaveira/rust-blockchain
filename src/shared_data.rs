@@ -1,6 +1,5 @@
-use crate::blockchain::Blockchain;
 use crate::config::Config;
-use crate::transaction_pool::TransactionPool;
+use crate::model::{Blockchain, TransactionPool};
 
 pub struct SharedData {
     pub config: Config,

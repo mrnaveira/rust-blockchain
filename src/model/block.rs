@@ -4,7 +4,7 @@ use crypto::sha2::Sha256;
 use ethereum_types::U256;
 use serde::Serialize;
 
-use crate::blockchain::transaction::Transaction;
+use super::Transaction;
 
 // We encapsulate the paricular hash value implementation
 // to be able to easily change it in the future

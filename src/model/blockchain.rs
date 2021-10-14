@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
 
-use crate::blockchain::block::{Block, BlockHash};
+use super::{Block, BlockHash};
 
 pub type BlockVec = Vec<Block>;
 

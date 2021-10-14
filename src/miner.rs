@@ -1,6 +1,5 @@
-use super::transaction_pool::{TransactionPool, TransactionVec};
 use crate::{
-    blockchain::{Block, BlockHash, Blockchain},
+    model::{Block, BlockHash, Blockchain, TransactionPool, TransactionVec},
     shared_data::SharedData,
 };
 use anyhow::Result;
@@ -136,7 +135,7 @@ impl Miner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::blockchain::Transaction;
+    use crate::model::Transaction;
 
     // We use SHA 256 hashes
     const MAX_DIFFICULTY: usize = 256;

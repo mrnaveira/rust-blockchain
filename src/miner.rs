@@ -20,16 +20,19 @@ pub struct Miner {
     tx_waiting_ms: u64,
     blockchain: Blockchain,
     pool: TransactionPool,
+    target: BlockHash,
 }
 
 impl Runnable for Miner {
     fn run(&self) -> Result<()> {
-        self.mine()
+        self.start()
     }
 }
 
 impl Miner {
     pub fn new(context: &Context) -> Miner {
+        let target = Miner::create_target(context.config.difficulty);
+
         Miner {
             max_blocks: context.config.max_blocks,
             max_nonce: context.config.max_nonce,
@@ -37,14 +40,14 @@ impl Miner {
             tx_waiting_ms: context.config.tx_waiting_ms,
             blockchain: context.blockchain.clone(),
             pool: context.pool.clone(),
+            target,
         }
     }
 
     // Try to constanly calculate and append new valid blocks to the blockchain,
     // including all pending transactions in the transaction pool each time
-    pub fn mine(&self) -> Result<()> {
-        info!("starting minining with difficulty {}", self.difficulty);
-        let target = self.create_target(self.difficulty);
+    pub fn start(&self) -> Result<()> {
+        info!("start minining with difficulty {}", self.difficulty);
 
         // In each loop it tries to find the next valid block and append it to the blockchain
         let mut block_counter = 0;
@@ -65,8 +68,7 @@ impl Miner {
 
             // try to find a valid next block of the blockchain
             let last_block = self.blockchain.get_last_block();
-            let mining_result =
-                self.mine_block(&last_block, transactions.clone(), target, self.max_nonce);
+            let mining_result = self.mine_block(&last_block, transactions.clone());
             match mining_result {
                 Some(block) => {
                     info!("valid block found for index {}", block.index);
@@ -84,7 +86,7 @@ impl Miner {
 
     // Creates binary data mask with the amount of left padding zeroes indicated by the "difficulty" value
     // Used to easily compare if a newly created block has a hash that matches the difficulty
-    fn create_target(&self, difficulty: usize) -> BlockHash {
+    fn create_target(difficulty: usize) -> BlockHash {
         BlockHash::MAX >> difficulty
     }
 
@@ -102,19 +104,13 @@ impl Miner {
     // Tries to find the next valid block of the blockchain
     // It will create blocks with different "nonce" values until one has a hash that matches the difficulty
     // Returns either a valid block (that satisfies the difficulty) or "None" if no block was found
-    fn mine_block(
-        &self,
-        last_block: &Block,
-        transactions: TransactionVec,
-        target: BlockHash,
-        max_nonce: u64,
-    ) -> Option<Block> {
-        for nonce in 0..max_nonce {
+    fn mine_block(&self, last_block: &Block, transactions: TransactionVec) -> Option<Block> {
+        for nonce in 0..self.max_nonce {
             let next_block = self.create_next_block(last_block, transactions.clone(), nonce);
 
             // A valid block must have a hash with enough starting zeroes
             // To check that, we simply compare against a binary data mask
-            if next_block.hash < target {
+            if next_block.hash < self.target {
                 return Some(next_block);
             }
         }
@@ -148,7 +144,7 @@ mod tests {
 
     #[test]
     fn test_create_next_block() {
-        let miner = create_miner();
+        let miner = create_default_miner();
         let block = create_empty_block();
 
         let next_block = miner.create_next_block(&block, Vec::new(), 0);
@@ -160,40 +156,34 @@ mod tests {
 
     #[test]
     fn test_create_target_valid_difficulty() {
-        let miner = create_miner();
-
         // try all possibilities of valid difficulties
         // the target must have as many leading zeroes
         for difficulty in 0..MAX_DIFFICULTY {
-            let target = miner.create_target(difficulty);
+            let target = Miner::create_target(difficulty);
             assert_eq!(target.leading_zeros(), difficulty as u32);
         }
     }
 
     #[test]
     fn test_create_target_overflowing_difficulty() {
-        let miner = create_miner();
-
         // when passing an overflowing difficulty,
         // it must default to the max difficulty
-        let target = miner.create_target(MAX_DIFFICULTY + 1);
+        let target = Miner::create_target(MAX_DIFFICULTY + 1);
         assert_eq!(target.leading_zeros(), MAX_DIFFICULTY as u32);
     }
 
     #[test]
     fn test_mine_block_found() {
-        let miner = create_miner();
-        let last_block = create_empty_block();
-
         // let's use a small difficulty target for fast testing
         let difficulty = 1;
-        let target = miner.create_target(difficulty);
 
         // this should be more than enough nonces to find a block with only 1 zero
         let max_nonce = 1_000;
 
         // check that the block is mined
-        let result = miner.mine_block(&last_block, Vec::new(), target, max_nonce);
+        let miner = create_miner(difficulty, max_nonce);
+        let last_block = create_empty_block();
+        let result = miner.mine_block(&last_block, Vec::new());
         assert!(result.is_some());
 
         // check that the block is valid
@@ -203,35 +193,33 @@ mod tests {
 
     #[test]
     fn test_mine_block_not_found() {
-        let miner = create_miner();
-        let last_block = create_empty_block();
-
         // let's use a high difficulty target to never find a block
         let difficulty = MAX_DIFFICULTY;
-        let target = miner.create_target(difficulty);
 
         // with a max_nonce so low, we will never find a block
         // and also the test will end fast
         let max_nonce = 10;
 
         // check that the block is not mined
-        let result = miner.mine_block(&last_block, Vec::new(), target, max_nonce);
+        let miner = create_miner(difficulty, max_nonce);
+        let last_block = create_empty_block();
+        let result = miner.mine_block(&last_block, Vec::new());
         assert!(result.is_none());
     }
 
     #[test]
-    fn test_mine_successful() {
-        // with a max_nonce so hight and difficulty so low
+    fn test_run_block_found() {
+        // with a max_nonce so high and difficulty so low
         // we will always find a valid block
-        let mut miner = create_miner();
-        miner.max_nonce = 1_000_000;
-        miner.difficulty = 1;
+        let difficulty = 1;
+        let max_nonce = 1_000_000;
+        let miner = create_miner(difficulty, max_nonce);
 
         let blockchain = miner.blockchain.clone();
         let pool = miner.pool.clone();
 
         add_mock_transaction(&pool);
-        let result = miner.mine();
+        let result = miner.run();
 
         // mining should be successful
         assert!(result.is_ok());
@@ -257,37 +245,43 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "No valid block was mined at index `1`")]
-    fn test_mine_not_found() {
+    fn test_run_block_not_found() {
         // with a max_nonce so low and difficulty so high
         // we will never find a valid block
-        let mut miner = create_miner();
-        miner.max_nonce = 1;
-        miner.difficulty = MAX_DIFFICULTY;
+        let difficulty = MAX_DIFFICULTY;
+        let max_nonce = 1;
+        let miner = create_miner(difficulty, max_nonce);
 
         let pool = &miner.pool;
         add_mock_transaction(pool);
 
         // mining should return a BlockNotMined error
-        miner.mine().unwrap();
+        miner.run().unwrap();
     }
 
-    fn create_miner() -> Miner {
-        let max_blocks = 1;
-        let max_nonce = 1;
+    fn create_default_miner() -> Miner {
         let difficulty = 1;
+        let max_nonce = 1;
+        create_miner(difficulty, max_nonce)
+    }
+
+    fn create_miner(difficulty: usize, max_nonce: u64) -> Miner {
+        let max_blocks = 1;
         let tx_waiting_ms = 1;
+        let target = Miner::create_target(difficulty);
 
         let blockchain = Blockchain::new();
         let pool = TransactionPool::new();
 
-        return Miner {
+        Miner {
             max_blocks,
             max_nonce,
             difficulty,
             tx_waiting_ms,
             blockchain,
             pool,
-        };
+            target,
+        }
     }
 
     fn create_empty_block() -> Block {

@@ -83,7 +83,7 @@ There are also multiple GitHub Actions (using [actions-rs](https://github.com/ac
 ### Concurrency implementation
 
 In this project, the `main` thread spawns two OS threads:
-* One for the **miner**. As mining is very CPU intensive, we want a dedicated OS thread to not slow down other operations in the application.
+* One for the **miner**. As mining is very CPU intensive, we want a dedicated OS thread to not slow down other operations in the application. In a real blockchain we would also want parallel mining (by handling a different subrange of nonces in each thread), but for simplicity we will only use one thread.
 * Another thread for the **REST API**. The API uses [`actix-web`](https://github.com/actix/actix-web), which internally uses [`tokio`](https://crates.io/crates/tokio), so it's optimized for asynchronous operations. Having the API in a separate OS thread from the miner allows the `tokio` runtime to be executed parallel to it.
 
 Thread spawning and handling is implemented using [`crossbeam-utils`](https://crates.io/crates/crossbeam-utils) to reduce boilerplate code from the standard library.
@@ -98,7 +98,6 @@ Also, both the miner and the API must **share** data, specifically the **block l
 - [x] Transaction pool that holds not realized transactions
 - [x] Basic miner that adds transactions every N seconds
 - [x] Basic PoW implementation: nonce, miner calculates hashes and fixed difficulty
-- [ ] Parallel mining
 - [ ] Mining peers communicate new blocks over the network
 - [ ] Blockchain disk storage
 - [ ] Dynamic difficulty (aiming for constant time intervals between blocks)

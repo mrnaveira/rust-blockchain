@@ -9,14 +9,14 @@ mod util;
 use api::Api;
 use miner::Miner;
 use model::{Blockchain, TransactionPool};
-use util::{execution, initialize_logger, set_ctrlc_handler, Config, Context};
+use util::{execution, initialize_logger, termination, Config, Context};
 
 fn main() {
     initialize_logger();
     info!("starting up");
 
     // quit the program when the user inputs Ctrl-C
-    set_ctrlc_handler();
+    termination::set_ctrlc_handler();
 
     // initialize shared data values
     let context = Context {

@@ -7,3 +7,7 @@
 
 # Dotenv configuration files
 .env
+
+# Coverage reports
+/coverage/
+**/*.profraw

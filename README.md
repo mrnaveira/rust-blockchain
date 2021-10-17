@@ -80,6 +80,28 @@ $ cargo test
 ### GitHub Actions
 There are also multiple GitHub Actions (using [actions-rs](https://github.com/actions-rs)) under the `.github/workflows` folder, as a form of CI. On each commit or PR they perform similar checks as the Git hooks (clippy/rustfmt, dependencies/build and test). The results are displayed as badges below the title of this README.
 
+### Test coverage
+To generate the test coverage report, at the moment it's required to use the nightly version of Rust. Also you need to install `grconv` and `llvm-tools`.
+All credit on [Marco Castelluccio for the instructions](https://github.com/marco-c/rust-code-coverage-sample):
+
+```bash
+# Install and set the Rust version to 'nightly'
+$ rustup install nightly
+$ rustup default nightly
+
+# Install all the components to inspect coverage
+$ cargo install grcov
+$ rustup component add llvm-tools-preview
+```
+
+Then, each time we want to to generate the coverage report, we simply execute the script:
+```bash
+$ ./scripts/coverage_report.sh
+```
+
+The results will be availabe under the `coverage` folder.
+
+
 ### Concurrency implementation
 
 In this project, the `main` thread spawns two OS threads:

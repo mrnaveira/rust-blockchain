@@ -22,7 +22,7 @@ jobs:
           args: --all-features --no-fail-fast
         env:
           RUSTFLAGS: '-Zinstrument-coverage'
-          RUSTFLAGS: 'rust_blockchain-%p-%m.profraw'
+          LLVM_PROFILE_FILE: 'rust_blockchain-%p-%m.profraw'
       - uses: actions-rs/grcov@v0.1 
       - uses: coverallsapp/github-action@master
         with:

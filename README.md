@@ -1,6 +1,6 @@
 # rust-blockchain
 
-![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/build.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/lint.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/test.yaml/badge.svg) 
+![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/build.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/lint.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/test.yaml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/mrnaveira/rust-blockchain/badge.png?branch=integration-test)](https://coveralls.io/github/mrnaveira/rust-blockchain?branch=integration-test)
 
 A simple blockchain example written in Rust:
 * Defines data structures to model a minimum blockchain
@@ -82,7 +82,7 @@ There are also multiple GitHub Actions (using [actions-rs](https://github.com/ac
 
 ### Test coverage
 To generate the test coverage report, at the moment it's required to use the nightly version of Rust. Also you need to install `grconv` and `llvm-tools`.
-All credit on [Marco Castelluccio for the instructions](https://github.com/marco-c/rust-code-coverage-sample):
+The detailed instructions are [in the grcov repository](https://github.com/mozilla/grcov#example-how-to-generate-source-based-coverage-for-a-rust-project):
 
 ```bash
 # Install and set the Rust version to 'nightly'

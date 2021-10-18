@@ -5,8 +5,8 @@
 #       $ cargo install grcov
 #       $ rustup component add llvm-tools-preview
 
-# All credit to Marco Castelluccio:
-# https://github.com/marco-c/rust-code-coverage-sample
+# Source of the instructions:
+# https://github.com/mozilla/grcov#example-how-to-generate-source-based-coverage-for-a-rust-project
 
 cargo clean
 rm -rf ./coverage ./target *.prof*

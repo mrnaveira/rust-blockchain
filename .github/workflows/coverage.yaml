@@ -12,12 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+  
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           override: true
+
       - name: Install grcov
         run: cargo install grcov
+
       - name: Run grcov
         env:
           RUSTFLAGS: '-Zinstrument-coverage'
@@ -26,7 +29,9 @@ jobs:
           cargo build
           cargo test 
           grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing -o lcov.info
-        - uses: coverallsapp/github-action@master
-          with:
-            github-token: ${{ secrets.GITHUB_TOKEN }}
-            path-to-lcov: "lcov.info"
+
+      - name: Push grcov results to Coveralls via GitHub Action
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: "lcov.info"

@@ -17,6 +17,9 @@ jobs:
         with:
           toolchain: nightly
           override: true
+      
+      - name: Install llvm-tools-preview
+        run: rustup component add llvm-tools-preview
 
       - name: Install grcov
         run: cargo install grcov

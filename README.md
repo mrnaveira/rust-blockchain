@@ -1,6 +1,6 @@
 # rust-blockchain
 
-![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/build.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/lint.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/test.yaml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/mrnaveira/rust-blockchain/badge.png?branch=integration-test)](https://coveralls.io/github/mrnaveira/rust-blockchain?branch=integration-test)
+![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/build.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/lint.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/test.yaml/badge.svg) [![coveralls](https://img.shields.io/coveralls/github/mrnaveira/rust-blockchain/integration-test)](https://coveralls.io/github/mrnaveira/rust-blockchain?branch=integration-test)
 
 A simple blockchain example written in Rust:
 * Defines data structures to model a minimum blockchain

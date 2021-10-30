@@ -16,17 +16,17 @@ jobs:
         with:
           toolchain: nightly
           override: true
-    - name: Install grcov
-      run: cargo install grcov
-    - name: Run grcov
-      env:
-        RUSTFLAGS: '-Zinstrument-coverage'
-        LLVM_PROFILE_FILE: 'rust_blockchain-%p-%m.profraw'
-      run: |
-        cargo build
-        cargo test 
-        grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing -o lcov.info
-      - uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: "lcov.info"
+      - name: Install grcov
+        run: cargo install grcov
+      - name: Run grcov
+        env:
+          RUSTFLAGS: '-Zinstrument-coverage'
+          LLVM_PROFILE_FILE: 'rust_blockchain-%p-%m.profraw'
+        run: |
+          cargo build
+          cargo test 
+          grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing -o lcov.info
+        - uses: coverallsapp/github-action@master
+          with:
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            path-to-lcov: "lcov.info"

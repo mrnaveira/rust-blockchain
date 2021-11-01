@@ -29,7 +29,7 @@ impl Config {
 
         Config {
             // Networking settings
-            port: Config::read_envvar::<u16>("CLIENT_PORT", 8000),
+            port: Config::read_envvar::<u16>("PORT", 8000),
             peers: Config::read_vec_envvar("PEERS", ",", StringVec::default()),
 
             // Miner settings

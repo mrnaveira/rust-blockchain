@@ -10,7 +10,6 @@ struct ApiState {
     pool: TransactionPool,
 }
 
-#[derive(Debug, Clone)]
 pub struct Api {
     port: u16,
     blockchain: Blockchain,

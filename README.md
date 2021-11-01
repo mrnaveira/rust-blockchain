@@ -80,6 +80,11 @@ $ cargo test
 ### GitHub Actions
 There are also multiple GitHub Actions (using [actions-rs](https://github.com/actions-rs)) under the `.github/workflows` folder, as a form of CI. On each commit or PR they perform similar checks as the Git hooks (clippy/rustfmt, dependencies/build and test). The results are displayed as badges below the title of this README.
 
+### Test organization
+The test organization follows the [recommended guidelines for Rust](https://doc.rust-lang.org/book/ch11-03-test-organization.html):
+* **Unit tests** are located inside the file with the code they're testing, inside a module annotated with `cfg(test)`.
+* **Integration tests** are located inside the `tests` folder. This project is a server application and not a library, so the integration tests run the server in a child OS thread, perform real REST API calls and then terminate the process. This way we test all parts of the application using only the REST API, treating it as a black box.
+
 ### Test coverage
 To generate the test coverage report, at the moment it's required to use the nightly version of Rust. Also you need to install `grconv` and `llvm-tools`.
 The detailed instructions are [in the grcov repository](https://github.com/mozilla/grcov#example-how-to-generate-source-based-coverage-for-a-rust-project):

@@ -27,7 +27,7 @@ $ ./target/release/rust_blockchain
 
 The application will start mining and listening on port `8000` for incoming client requests via a REST API. To change any environment variable (port, mining parameters, etc.) refer to the `.env.example` file.
 
-For development setup, check the [development notes section](#development-setup).
+For development setup, check the [development notes section](#development-notes).
 
 ## Client REST API
 The application provides a REST API for clients to operate with the blockchain.
@@ -78,7 +78,7 @@ $ cargo test
 ```
 
 ### GitHub Actions
-There are also multiple GitHub Actions (using [actions-rs](https://github.com/actions-rs)) under the `.github/workflows` folder, as a form of CI. On each commit or PR they perform similar checks as the Git hooks (clippy/rustfmt, dependencies/build and test). The results are displayed as badges below the title of this README.
+There are also multiple GitHub Actions (using [actions-rs](https://github.com/actions-rs)) under the `.github/workflows` folder, as a form of CI. On each commit or PR they perform similar checks as the Git hooks (clippy/rustfmt, dependencies/build and test) plus the test coverage (explained in the [coverage section](#test-coverage) ). The results are displayed as badges below the title of this README.
 
 ### Test organization
 The test organization follows the [recommended guidelines for Rust](https://doc.rust-lang.org/book/ch11-03-test-organization.html):

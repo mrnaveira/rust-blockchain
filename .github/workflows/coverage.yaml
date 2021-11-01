@@ -22,7 +22,7 @@ jobs:
         run: rustup component add llvm-tools-preview
 
       - name: Install grcov
-        run: cargo install grcov
+        run: cargo install grcov --locked
 
       - name: Run grcov
         env:

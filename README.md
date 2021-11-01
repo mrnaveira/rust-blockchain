@@ -1,6 +1,6 @@
 # rust-blockchain
 
-![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/build.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/lint.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/test.yaml/badge.svg) 
+![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/build.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/lint.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/test.yaml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/mrnaveira/rust-blockchain/badge.svg?service=github)](https://coveralls.io/github/mrnaveira/rust-blockchain)
 
 A simple blockchain example written in Rust:
 * Defines data structures to model a minimum blockchain
@@ -27,7 +27,7 @@ $ ./target/release/rust_blockchain
 
 The application will start mining and listening on port `8000` for incoming client requests via a REST API. To change any environment variable (port, mining parameters, etc.) refer to the `.env.example` file.
 
-For development setup, check the [development notes section](#development-setup).
+For development setup, check the [development notes section](#development-notes).
 
 ## Client REST API
 The application provides a REST API for clients to operate with the blockchain.
@@ -78,7 +78,23 @@ $ cargo test
 ```
 
 ### GitHub Actions
-There are also multiple GitHub Actions (using [actions-rs](https://github.com/actions-rs)) under the `.github/workflows` folder, as a form of CI. On each commit or PR they perform similar checks as the Git hooks (clippy/rustfmt, dependencies/build and test). The results are displayed as badges below the title of this README.
+There are also multiple GitHub Actions (using [actions-rs](https://github.com/actions-rs)) under the `.github/workflows` folder, as a form of CI. On each commit or PR they perform similar checks as the Git hooks (clippy/rustfmt, dependencies/build and test) plus the test coverage (explained in the [coverage section](#test-coverage) ). The results are displayed as badges below the title of this README.
+
+### Test organization
+The test organization follows the [recommended guidelines for Rust](https://doc.rust-lang.org/book/ch11-03-test-organization.html):
+* **Unit tests** are located inside the file with the code they're testing, inside a module annotated with `cfg(test)`.
+* **Integration tests** are located inside the `tests` folder. This project is a server application and not a library, so the integration tests run the server in a child OS thread, perform real REST API calls and then terminate the process. This way we test all parts of the application using only the REST API, treating it as a black box.
+
+### Test coverage
+To generate the test coverage report, at the moment it's required to use the nightly version of Rust. Also you need to install `grconv` and `llvm-tools`.
+The detailed instructions are [in the grcov repository](https://github.com/mozilla/grcov#example-how-to-generate-source-based-coverage-for-a-rust-project) as well as in the `scripts/coverage_report.sh` script.
+
+Then, each time we want to to generate the coverage report, we simply execute the script:
+```bash
+$ ./scripts/coverage_report.sh
+```
+
+The results will be availabe under the `coverage` folder for inspection. Also, there is a GitHub Action (in `.github/workflows/coverage.yaml`) that will automatically calculate it on every push to `origin` and display the coverage in a badge under the title of this README. 
 
 ### Concurrency implementation
 

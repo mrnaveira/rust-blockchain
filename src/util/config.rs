@@ -4,14 +4,11 @@ use dotenv::dotenv;
 use std::env;
 use std::str::FromStr;
 
-type StringVec = Vec<String>;
-
 // Encapsulates configuration values to be used across the application
 // It ensures correct typing and that at least they will have a default value
 pub struct Config {
     // Networking settings
     pub port: u16,
-    pub peers: StringVec,
 
     // Miner settings
     pub max_blocks: u64,
@@ -29,8 +26,7 @@ impl Config {
 
         Config {
             // Networking settings
-            port: Config::read_envvar::<u16>("CLIENT_PORT", 8000),
-            peers: Config::read_vec_envvar("PEERS", ",", StringVec::default()),
+            port: Config::read_envvar::<u16>("PORT", 8000),
 
             // Miner settings
             max_blocks: Config::read_envvar::<u64>("MAX_BLOCKS", 0), // unlimited blocks
@@ -47,12 +43,51 @@ impl Config {
             Err(_e) => default_value,
         }
     }
+}
 
-    // Parses a multiple value (Vec) from a environment variable, accepting a default value if missing
-    fn read_vec_envvar(key: &str, separator: &str, default_value: StringVec) -> StringVec {
-        match env::var(key) {
-            Ok(val) => val.trim().split(separator).map(str::to_string).collect(),
-            Err(_e) => default_value,
-        }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn read_present_envvar() {
+        let var_name = "PRESENT_ENVVAR";
+        let real_value = 9000;
+        env::set_var(var_name, real_value.to_string());
+
+        // read the present, should NOT return the default value but the real one
+        let default_value = 8000 as u16;
+        let value = Config::read_envvar::<u16>(var_name, default_value);
+
+        assert_eq!(value, real_value);
+
+        // let's remove the var at the end to not pollute the environment
+        env::remove_var(var_name);
+    }
+
+    #[test]
+    fn read_non_present_envvar() {
+        let var_name = "NON_PRESENT_ENVVAR";
+
+        // let's remove the var just to make sure it's not setted
+        env::remove_var(var_name);
+
+        // read the non present var, should return the default value
+        let default_value = 8000 as u16;
+        let value = Config::read_envvar::<u16>(var_name, default_value);
+
+        assert_eq!(value, default_value);
+    }
+
+    #[test]
+    fn read_invalid_envvar() {
+        // envvars should not have the "=" character in the name
+        let var_name = "INVALID=VAR=NAME";
+
+        // read the invalid var, should return the default value
+        let default_value = 8000 as u16;
+        let value = Config::read_envvar::<u16>(var_name, default_value);
+
+        assert_eq!(value, default_value);
     }
 }

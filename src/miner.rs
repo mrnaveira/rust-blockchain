@@ -12,7 +12,6 @@ pub enum MinerError {
     BlockNotMined(u64),
 }
 
-#[derive(Debug, Clone)]
 pub struct Miner {
     max_blocks: u64,
     max_nonce: u64,

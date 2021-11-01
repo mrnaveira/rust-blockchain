@@ -1,0 +1,40 @@
+on:
+  pull_request:
+  push:
+    branches:
+      - '*'
+
+name: coverage
+
+jobs:
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+  
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      
+      - name: Install llvm-tools-preview
+        run: rustup component add llvm-tools-preview
+
+      - name: Install grcov
+        run: cargo install grcov --locked
+
+      - name: Run grcov
+        env:
+          RUSTFLAGS: '-Zinstrument-coverage'
+          LLVM_PROFILE_FILE: 'rust_blockchain-%p-%m.profraw'
+        run: |
+          cargo build
+          cargo test 
+          grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" --ignore "tests/*" -o lcov.info
+
+      - name: Push grcov results to Coveralls via GitHub Action
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: "lcov.info"

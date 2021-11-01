@@ -1,6 +1,6 @@
 # rust-blockchain
 
-![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/build.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/lint.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/test.yaml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/mrnaveira/rust-blockchain/badge.svg?branch=integration-test&service=github&kill_cache=1)](https://coveralls.io/github/mrnaveira/rust-blockchain?branch=integration-test)
+![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/build.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/lint.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/test.yaml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/mrnaveira/rust-blockchain/badge.svg?service=github)](https://coveralls.io/github/mrnaveira/rust-blockchain)
 
 A simple blockchain example written in Rust:
 * Defines data structures to model a minimum blockchain
@@ -87,25 +87,14 @@ The test organization follows the [recommended guidelines for Rust](https://doc.
 
 ### Test coverage
 To generate the test coverage report, at the moment it's required to use the nightly version of Rust. Also you need to install `grconv` and `llvm-tools`.
-The detailed instructions are [in the grcov repository](https://github.com/mozilla/grcov#example-how-to-generate-source-based-coverage-for-a-rust-project):
-
-```bash
-# Install and set the Rust version to 'nightly'
-$ rustup install nightly
-$ rustup default nightly
-
-# Install all the components to inspect coverage
-$ cargo install grcov
-$ rustup component add llvm-tools-preview
-```
+The detailed instructions are [in the grcov repository](https://github.com/mozilla/grcov#example-how-to-generate-source-based-coverage-for-a-rust-project) as well as in the `scripts/coverage_report.sh` script.
 
 Then, each time we want to to generate the coverage report, we simply execute the script:
 ```bash
 $ ./scripts/coverage_report.sh
 ```
 
-The results will be availabe under the `coverage` folder.
-
+The results will be availabe under the `coverage` folder for inspection. Also, there is a GitHub Action (in `.github/workflows/coverage.yaml`) that will automatically calculate it on every push to `origin` and display the coverage in a badge under the title of this README. 
 
 ### Concurrency implementation
 

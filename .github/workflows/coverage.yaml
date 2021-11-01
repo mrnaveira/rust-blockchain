@@ -31,7 +31,7 @@ jobs:
         run: |
           cargo build
           cargo test 
-          grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" -o lcov.info
+          grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" --ignore "tests/*" -o lcov.info
 
       - name: Push grcov results to Coveralls via GitHub Action
         uses: coverallsapp/github-action@master

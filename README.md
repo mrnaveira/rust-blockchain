@@ -115,9 +115,9 @@ Also, both the miner and the API must **share** data, specifically the **block l
 - [x] Basic miner that adds transactions every N seconds
 - [x] Basic PoW implementation: nonce, miner calculates hashes and fixed difficulty
 - [ ] Mining peers communicate new blocks over the network
-- [ ] Blockchain disk storage
-- [ ] Dynamic difficulty (aiming for constant time intervals between blocks)
 - [ ] Block rewards: subsidy and transaction fees
 - [ ] Validate transaction balances
+- [ ] Dynamic difficulty (aiming for constant time intervals between blocks)
 - [ ] Halving
+- [ ] Blockchain disk storage
 - [ ] Digital signing of transactions

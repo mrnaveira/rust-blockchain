@@ -19,9 +19,11 @@ fn main() {
     termination::set_ctrlc_handler();
 
     // initialize shared data values
+    let config = Config::read();
+    let difficulty = config.difficulty;
     let context = Context {
-        config: Config::read(),
-        blockchain: Blockchain::new(),
+        config,
+        blockchain: Blockchain::new(difficulty),
         pool: TransactionPool::new(),
     };
 

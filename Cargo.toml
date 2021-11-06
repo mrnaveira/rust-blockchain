@@ -24,6 +24,7 @@ thiserror = "1.0"
 isahc = "1.5"
 assert_cmd = "2.0.2"
 nix = "0.23.0"
+serial_test = "0.5.1"
 
 [dev-dependencies.cargo-husky]
 version = "1"

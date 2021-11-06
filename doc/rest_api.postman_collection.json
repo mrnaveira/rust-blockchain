@@ -25,6 +25,34 @@
 			"response": []
 		},
 		{
+			"name": "Add a new block",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"index\": 1,\n    \"timestamp\": 0,\n    \"nonce\": 0,\n    \"previous_hash\": \"0x0\",\n    \"hash\": \"0x0\",\n    \"transactions\": [\n        {\n            \"sender\": \"0\",\n            \"recipient\": \"1\",\n            \"amount\": 1000\n        },\n        {\n            \"sender\": \"0\",\n            \"recipient\": \"2\",\n            \"amount\": 1000\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/blocks",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"blocks"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Add a new transaction to the pool",
 			"request": {
 				"method": "POST",

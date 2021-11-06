@@ -13,8 +13,8 @@ use nix::{
 
 const PORT: u64 = 8000;
 
-// we set very low difficulty and waiting time to minimize testing duration
-const DIFFICULTY: u64 = 1;
+// we set no difficulty and waiting time to minimize testing duration
+const DIFFICULTY: u64 = 0;
 const TRANSACTION_WAITING_MS: u64 = 100;
 
 pub fn get_server_url() -> String {

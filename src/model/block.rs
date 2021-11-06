@@ -2,7 +2,7 @@ use chrono::prelude::*;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use ethereum_types::U256;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use super::Transaction;
 
@@ -11,7 +11,7 @@ use super::Transaction;
 pub type BlockHash = U256;
 
 // Represents a block in a blockchain
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Block {
     pub index: u64,
     pub timestamp: i64,

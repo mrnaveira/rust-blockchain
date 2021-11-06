@@ -34,8 +34,9 @@ The application provides a REST API for clients to operate with the blockchain.
 
 | Method | URL | Description
 | --- | --- | --- |
-| GET | /blocks | List all blocks of the blockchain <br /> `curl -X GET http://localhost:8000/blocks`
-| POST | /transactions | Add a new transaction to the pool <br /> `curl -X POST http://localhost:8000/transactions -H 'Content-Type: application/json' -d '{"sender": "1", "recipient": "2", "amount": 1002}'`
+| GET | /blocks | List all blocks of the blockchain
+| POST | /blocks | Append a new block to the blockchain
+| POST | /transactions | Add a new transaction to the pool
 
 The file `doc/rest_api.postman_collection.json` contains a Postman collection with examples of all requests.
 

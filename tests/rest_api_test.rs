@@ -7,8 +7,10 @@ use crate::common::{
 
 #[test]
 #[cfg(unix)]
-// Test all the methods of the REST API: get_blocks and add_transaction
+// Test all the methods of the REST API: get_blocks, add_transaction and add_block
 fn test_rest_api() {
+    use crate::common::api_utils::{add_block, Block};
+
     run_in_server_instance(|| {
         // list the blocks by querying the REST API
         let blocks = get_blocks();
@@ -29,7 +31,8 @@ fn test_rest_api() {
             recipient: "2".to_string(),
             amount: 100 as u64,
         };
-        add_transaction(&transaction);
+        let res = add_transaction(&transaction);
+        assert_eq!(res.status().as_u16(), 200);
 
         // wait for the transaction to be mined
         wait_for_mining();
@@ -48,5 +51,32 @@ fn test_rest_api() {
         assert_eq!(mined_transaction.sender, transaction.sender);
         assert_eq!(mined_transaction.recipient, transaction.recipient);
         assert_eq!(mined_transaction.amount, transaction.amount);
+
+        // let's add a new VALID block throught the API directly
+        let valid_block = Block {
+            // there is the genesis block and the mined one, so the next index is 2
+            index: 2,
+            timestamp: 0,
+            nonce: 0,
+            // the previous hash is checked
+            previous_hash: mined_block.hash,
+            // the api automatically recalculates the hash
+            hash: BlockHash::default(),
+            transactions: [].to_vec(),
+        };
+        let res = add_block(&valid_block);
+        assert_eq!(res.status().as_u16(), 200);
+
+        // let's try to add a new INVALID block, should return an error
+        let invalid_block = Block {
+            index: 0,
+            timestamp: 0,
+            nonce: 0,
+            previous_hash: BlockHash::default(),
+            hash: BlockHash::default(),
+            transactions: [].to_vec(),
+        };
+        let res = add_block(&invalid_block);
+        assert_eq!(res.status().as_u16(), 400);
     });
 }

@@ -4,11 +4,14 @@ use dotenv::dotenv;
 use std::env;
 use std::str::FromStr;
 
+type StringVec = Vec<String>;
+
 // Encapsulates configuration values to be used across the application
 // It ensures correct typing and that at least they will have a default value
 pub struct Config {
     // Networking settings
     pub port: u16,
+    pub peers: StringVec,
 
     // Miner settings
     pub max_blocks: u64,
@@ -27,6 +30,7 @@ impl Config {
         Config {
             // Networking settings
             port: Config::read_envvar::<u16>("PORT", 8000),
+            peers: Config::read_vec_envvar("PEERS", ",", StringVec::default()),
 
             // Miner settings
             max_blocks: Config::read_envvar::<u64>("MAX_BLOCKS", 0), // unlimited blocks
@@ -43,6 +47,14 @@ impl Config {
             Err(_e) => default_value,
         }
     }
+
+    // Parses a multiple value (Vec) from a environment variable, accepting a default value if missing
+    fn read_vec_envvar(key: &str, separator: &str, default_value: StringVec) -> StringVec {
+        match env::var(key) {
+            Ok(val) => val.trim().split(separator).map(str::to_string).collect(),
+            Err(_e) => default_value,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -55,11 +67,28 @@ mod tests {
         let real_value = 9000;
         env::set_var(var_name, real_value.to_string());
 
-        // read the present, should NOT return the default value but the real one
+        // read the present var, should NOT return the default value but the real one
         let default_value = 8000 as u16;
         let value = Config::read_envvar::<u16>(var_name, default_value);
 
         assert_eq!(value, real_value);
+
+        // let's remove the var at the end to not pollute the environment
+        env::remove_var(var_name);
+    }
+
+    #[test]
+    fn read_present_vec_envvar() {
+        let var_name = "PRESENT_VEC_ENVVAR";
+        let value = "FOO,BAR";
+        env::set_var(var_name, value.to_string());
+
+        // read the present var, should NOT return the default value but the real one
+        let default_value = StringVec::default();
+        let actual_value = Config::read_vec_envvar(var_name, ",", default_value.clone());
+        let expected_value: Vec<String> = value.split(",").map(str::to_string).collect();
+
+        assert!(do_vecs_match(&actual_value, &expected_value));
 
         // let's remove the var at the end to not pollute the environment
         env::remove_var(var_name);
@@ -75,8 +104,12 @@ mod tests {
         // read the non present var, should return the default value
         let default_value = 8000 as u16;
         let value = Config::read_envvar::<u16>(var_name, default_value);
-
         assert_eq!(value, default_value);
+
+        // same for vec variables
+        let default_vec_value = StringVec::default();
+        let vec_value = Config::read_vec_envvar(var_name, ",", default_vec_value.clone());
+        assert_eq!(&vec_value, &default_vec_value);
     }
 
     #[test]
@@ -87,7 +120,17 @@ mod tests {
         // read the invalid var, should return the default value
         let default_value = 8000 as u16;
         let value = Config::read_envvar::<u16>(var_name, default_value);
-
         assert_eq!(value, default_value);
+
+        // read the invalid var as a vector, should return the default value as well
+        let default_vec_value = StringVec::default();
+        let vec_value = Config::read_vec_envvar(var_name, ",", default_vec_value.clone());
+        assert!(do_vecs_match(&vec_value, &default_vec_value));
+    }
+
+    // All credit for this function to https://stackoverflow.com/a/58175659
+    fn do_vecs_match<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {
+        let matching = a.iter().zip(b.iter()).filter(|&(a, b)| a == b).count();
+        matching == a.len() && matching == b.len()
     }
 }

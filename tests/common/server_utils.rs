@@ -1,5 +1,6 @@
 use std::{
     convert::TryInto,
+    panic,
     process::{Child, Command},
     thread,
     time::Duration,
@@ -34,7 +35,8 @@ pub fn run_in_server_instance(f: fn() -> ()) {
     sleep_secs(1);
 
     // run the desired functionality while the server is running
-    f();
+    // even if the tests panics (due to an assert failing) we shutdown the server
+    let result = panic::catch_unwind(|| f());
 
     // finish the blockchain instance so it does not become a zombie process
     let pid = Pid::from_raw(cmd.id().try_into().unwrap());
@@ -42,6 +44,9 @@ pub fn run_in_server_instance(f: fn() -> ()) {
 
     // block the thread until the server has finished
     wait_for_termination(&mut cmd);
+
+    // after we shutdown the server, we can assert the the test is ok
+    assert!(result.is_ok());
 }
 
 fn wait_for_termination(child: &mut Child) {

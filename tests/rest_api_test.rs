@@ -10,7 +10,6 @@ use crate::common::{
 #[test]
 #[serial]
 #[cfg(unix)]
-// Test all the methods of the REST API: get_blocks, add_transaction and add_block
 fn test_should_get_a_valid_genesis_block() {
     run_in_server_instance(|| {
         // list the blocks by querying the REST API

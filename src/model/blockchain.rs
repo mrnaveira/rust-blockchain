@@ -109,7 +109,14 @@ impl Blockchain {
         let previous_hash = BlockHash::default();
         let transactions = Vec::new();
 
-        Block::new(index, nonce, previous_hash, transactions)
+        let mut block = Block::new(index, nonce, previous_hash, transactions);
+
+        // to easily sync multiple nodes in a network, the genesis blocks must match
+        // so we clear the timestamp so the hash of the genesis block is predictable 
+        block.timestamp = 0;
+        block.hash = block.calculate_hash();
+
+        block   
     }
 }
 

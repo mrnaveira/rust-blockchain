@@ -11,7 +11,10 @@ type StringVec = Vec<String>;
 pub struct Config {
     // Networking settings
     pub port: u16,
+
+    // Peer settings
     pub peers: StringVec,
+    pub peer_sync_ms: u64,
 
     // Miner settings
     pub max_blocks: u64,
@@ -30,7 +33,10 @@ impl Config {
         Config {
             // Networking settings
             port: Config::read_envvar::<u16>("PORT", 8000),
+
+            // Peer settings
             peers: Config::read_vec_envvar("PEERS", ",", StringVec::default()),
+            peer_sync_ms: Config::read_envvar::<u64>("PEER_SYNC_MS", 10000),
 
             // Miner settings
             max_blocks: Config::read_envvar::<u64>("MAX_BLOCKS", 0), // unlimited blocks

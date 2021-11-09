@@ -1,9 +1,5 @@
-use crate::{
-    model::{Block, BlockHash, Blockchain, TransactionPool, TransactionVec},
-    util::{execution::Runnable, Context},
-};
+use crate::{model::{Block, BlockHash, Blockchain, TransactionPool, TransactionVec}, util::{Context, execution::{Runnable, sleep_millis}}};
 use anyhow::Result;
-use std::{thread, time};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -62,7 +58,7 @@ impl Miner {
 
             // Do not try to mine a block if there are no transactions in the pool
             if transactions.is_empty() {
-                self.sleep_millis(self.tx_waiting_ms);
+                sleep_millis(self.tx_waiting_ms);
                 continue;
             }
 
@@ -93,12 +89,6 @@ impl Miner {
     // check if we have hit the limit of mined blocks (if the limit is set)
     fn must_stop_mining(&self, block_counter: u64) -> bool {
         self.max_blocks > 0 && block_counter >= self.max_blocks
-    }
-
-    // Suspend the execution of the thread by a particular amount of milliseconds
-    fn sleep_millis(&self, millis: u64) {
-        let wait_duration = time::Duration::from_millis(millis);
-        thread::sleep(wait_duration);
     }
 
     // Tries to find the next valid block of the blockchain

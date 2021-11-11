@@ -2,13 +2,7 @@ mod common;
 
 use serial_test::serial;
 
-use crate::common::{
-    api::{Api, BlockHash},
-    server::ServerBuilder,
-};
-
-use crate::common::api::Block;
-use crate::common::api::Transaction;
+use crate::common::{Api, Block, BlockHash, ServerBuilder, Transaction};
 
 #[test]
 #[serial]

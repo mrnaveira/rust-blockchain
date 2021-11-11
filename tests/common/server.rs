@@ -10,6 +10,7 @@ use nix::{
     sys::signal::{kill, Signal::SIGTERM},
     unistd::Pid,
 };
+
 pub struct Config {
     pub port: u16,
     pub peers: Vec<String>,
@@ -24,6 +25,7 @@ pub struct ServerBuilder {
     config: Config,
 }
 
+#[allow(dead_code)]
 impl ServerBuilder {
     pub fn new() -> ServerBuilder {
         // set the default values
@@ -69,6 +71,7 @@ pub struct Server {
     process: Child,
 }
 
+#[allow(dead_code)]
 impl Server {
     pub fn new(config: Config) -> Server {
         Server {

@@ -1,7 +1,6 @@
 mod common;
 
-use common::api::Api;
-use common::server::ServerBuilder;
+use crate::common::{Api, ServerBuilder};
 use serial_test::serial;
 
 #[test]

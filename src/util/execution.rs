@@ -1,6 +1,6 @@
 use anyhow::Result;
 use crossbeam_utils::thread;
-use std::{time};
+use std::time;
 
 pub trait Runnable: Sync {
     fn run(&self) -> Result<()>;

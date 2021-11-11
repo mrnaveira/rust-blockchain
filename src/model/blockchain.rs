@@ -112,11 +112,11 @@ impl Blockchain {
         let mut block = Block::new(index, nonce, previous_hash, transactions);
 
         // to easily sync multiple nodes in a network, the genesis blocks must match
-        // so we clear the timestamp so the hash of the genesis block is predictable 
+        // so we clear the timestamp so the hash of the genesis block is predictable
         block.timestamp = 0;
         block.hash = block.calculate_hash();
 
-        block   
+        block
     }
 }
 

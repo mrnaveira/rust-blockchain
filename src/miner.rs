@@ -1,4 +1,10 @@
-use crate::{model::{Block, BlockHash, Blockchain, TransactionPool, TransactionVec}, util::{Context, execution::{Runnable, sleep_millis}}};
+use crate::{
+    model::{Block, BlockHash, Blockchain, TransactionPool, TransactionVec},
+    util::{
+        execution::{sleep_millis, Runnable},
+        Context,
+    },
+};
 use anyhow::Result;
 use thiserror::Error;
 

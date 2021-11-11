@@ -1,6 +1,12 @@
-use std::{panic};
+use std::panic;
 
-use crate::{model::{Block, Blockchain}, util::{Context, execution::{Runnable, sleep_millis}}};
+use crate::{
+    model::{Block, Blockchain},
+    util::{
+        execution::{sleep_millis, Runnable},
+        Context,
+    },
+};
 use anyhow::Result;
 use isahc::ReadResponseExt;
 
@@ -52,7 +58,6 @@ impl Peer {
 
                 if !new_blocks.is_empty() {
                     self.add_new_blocks(&new_blocks);
-                    info!("Added {} new blocks from the peer at {}", new_blocks.len(), address);
                 }
             });
 
@@ -73,6 +78,8 @@ impl Peer {
                 error!("Could not add peer block {} to the blockchain", block.index);
                 return;
             }
+
+            info!("Added new peer block {} to the blockchain", block.index);
         }
     }
 
@@ -84,7 +91,7 @@ impl Peer {
         // we retrieve all the blocks from the peer
         let peer_blocks = self.get_blocks_from_peer(address);
         let peer_last_index = peer_blocks.last().unwrap().index as usize;
-                
+
         // Check if the peer has new blocks
         if peer_last_index <= our_last_index {
             return Vec::<Block>::new();
@@ -101,10 +108,10 @@ impl Peer {
     fn get_blocks_from_peer(&self, address: &str) -> Vec<Block> {
         let uri = format!("{}/blocks", address);
         let mut response = isahc::get(uri).unwrap();
-    
+
         // check that the response is sucessful
         assert_eq!(response.status().as_u16(), 200);
-    
+
         // parse and return the list of blocks from the response body
         let raw_body = response.text().unwrap();
         serde_json::from_str(&raw_body).unwrap()

@@ -57,7 +57,11 @@ impl Config {
     // Parses a multiple value (Vec) from a environment variable, accepting a default value if missing
     fn read_vec_envvar(key: &str, separator: &str, default_value: StringVec) -> StringVec {
         match env::var(key) {
-            Ok(val) => val.trim().split(separator).map(str::to_string).collect(),
+            Ok(val) => val
+                .trim()
+                .split_terminator(separator)
+                .map(str::to_string)
+                .collect(),
             Err(_e) => default_value,
         }
     }

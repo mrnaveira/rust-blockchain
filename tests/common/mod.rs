@@ -1,2 +1,2 @@
-pub mod api_utils;
-pub mod server_utils;
+pub mod api;
+pub mod server;

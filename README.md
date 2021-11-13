@@ -109,7 +109,7 @@ In this project, the `main` thread spawns three OS threads:
 
 Thread spawning and handling is implemented using [`crossbeam-utils`](https://crates.io/crates/crossbeam-utils) to reduce boilerplate code from the standard library.
 
-Also, all threads share data, specifically the **block list** and the **transaction pool**. Those two data structures are implement by using `Arc<Mutex>` to allow multiple concurrent writes and reads in a safe way from separate threads.
+Also, all threads share data, specifically the **block list** and the **transaction pool**. Those two data structures are implemented by using `Arc<Mutex>` to allow multiple concurrent writes and reads in a safe way from separate threads.
 
 ## Roadmap
 

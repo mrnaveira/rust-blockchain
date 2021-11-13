@@ -2,9 +2,12 @@
 
 ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/build.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/lint.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/test.yaml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/mrnaveira/rust-blockchain/badge.svg?service=github)](https://coveralls.io/github/mrnaveira/rust-blockchain)
 
-A simple blockchain example written in Rust:
+A Proof of Work blockchain written in Rust. For educational purposes only.
+
+Features:
 * Defines data structures to model a minimum blockchain
 * Mines new blocks in a separate thread, running a Proof of Work algorithm with a fixed difficulty
+* Synchronizes new blocks with peer nodes in a decentralized network
 * Provides a REST API to retrieve the blocks and add transactions
 
 ## Getting Started
@@ -34,8 +37,9 @@ The application provides a REST API for clients to operate with the blockchain.
 
 | Method | URL | Description
 | --- | --- | --- |
-| GET | /blocks | List all blocks of the blockchain <br /> `curl -X GET http://localhost:8000/blocks`
-| POST | /transactions | Add a new transaction to the pool <br /> `curl -X POST http://localhost:8000/transactions -H 'Content-Type: application/json' -d '{"sender": "1", "recipient": "2", "amount": 1002}'`
+| GET | /blocks | List all blocks of the blockchain
+| POST | /blocks | Append a new block to the blockchain
+| POST | /transactions | Add a new transaction to the pool
 
 The file `doc/rest_api.postman_collection.json` contains a Postman collection with examples of all requests.
 
@@ -98,13 +102,14 @@ The results will be availabe under the `coverage` folder for inspection. Also, t
 
 ### Concurrency implementation
 
-In this project, the `main` thread spawns two OS threads:
-* One for the **miner**. As mining is very CPU intensive, we want a dedicated OS thread to not slow down other operations in the application. In a real blockchain we would also want parallel mining (by handling a different subrange of nonces in each thread), but for simplicity we will only use one thread.
-* Another thread for the **REST API**. The API uses [`actix-web`](https://github.com/actix/actix-web), which internally uses [`tokio`](https://crates.io/crates/tokio), so it's optimized for asynchronous operations. Having the API in a separate OS thread from the miner allows the `tokio` runtime to be executed parallel to it.
+In this project, the `main` thread spawns three OS threads:
+* One for the **miner**. As mining is very computationally-intensive, we want a dedicated OS thread to not slow down other operations in the application. In a real blockchain we would also want parallel mining (by handling a different subrange of nonces in each thread), but for simplicity we will only use one thread.
+* Other thread for the **REST API**. The API uses [`actix-web`](https://github.com/actix/actix-web), which internally uses [`tokio`](https://crates.io/crates/tokio), so it's optimized for asynchronous operations.
+* A thread for the **peer system**, that periodically sends and receives new blocks from peers over the network.
 
 Thread spawning and handling is implemented using [`crossbeam-utils`](https://crates.io/crates/crossbeam-utils) to reduce boilerplate code from the standard library.
 
-Also, both the miner and the API must **share** data, specifically the **block list** and the **transaction pool**. As they are accessed from different threads, those data structures are implement by using `Arc<Mutex>` to allow multiple concurrent writes and reads in a safe way.
+Also, all threads share data, specifically the **block list** and the **transaction pool**. Those two data structures are implement by using `Arc<Mutex>` to allow multiple concurrent writes and reads in a safe way from separate threads.
 
 ## Roadmap
 
@@ -114,7 +119,7 @@ Also, both the miner and the API must **share** data, specifically the **block l
 - [x] Transaction pool that holds not realized transactions
 - [x] Basic miner that adds transactions every N seconds
 - [x] Basic PoW implementation: nonce, miner calculates hashes and fixed difficulty
-- [ ] Mining peers communicate new blocks over the network
+- [x] Mining peers communicate new blocks over the network
 - [ ] Block rewards: subsidy and transaction fees
 - [ ] Validate transaction balances
 - [ ] Dynamic difficulty (aiming for constant time intervals between blocks)

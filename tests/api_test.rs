@@ -28,7 +28,7 @@ fn test_should_get_a_valid_genesis_block() {
 #[serial]
 #[cfg(unix)]
 fn test_should_let_add_transactions() {
-    let node = ServerBuilder::new().start();
+    let mut node = ServerBuilder::new().start();
     let genesis_block = node.get_last_block();
 
     // create and add a new transaction to the pool

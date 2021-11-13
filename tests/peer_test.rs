@@ -11,7 +11,7 @@ fn test_should_sync_new_valid_blocks() {
     let leader_node = ServerBuilder::new().port(8000).start();
 
     // This new node will keep asking for new blocks to the leader node
-    let follower_node = ServerBuilder::new().port(8001).peer(8000).start();
+    let mut follower_node = ServerBuilder::new().port(8001).peer(8000).start();
 
     // At the beggining, both nodes will only have the genesis blocks
     assert_eq!(leader_node.get_blocks().len(), 1);
@@ -40,7 +40,7 @@ fn test_should_not_sync_new_invalid_blocks() {
 
     // This new node will keep asking for new blocks to the leader node
     // But we will require a much higher difficulty, so it should not accept blocks from the leader
-    let follower_node = ServerBuilder::new()
+    let mut follower_node = ServerBuilder::new()
         .difficulty(20)
         .port(8001)
         .peer(8000)
@@ -65,7 +65,7 @@ fn test_should_ignore_unavailable_peers() {
 
     // This new node will keep asking for new blocks to the leader node
     // but also to a node that does not exist...
-    let follower_node = ServerBuilder::new()
+    let mut follower_node = ServerBuilder::new()
         .port(8001)
         .peer(9000)
         .peer(8000)

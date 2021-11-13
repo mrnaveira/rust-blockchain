@@ -2,9 +2,12 @@
 
 ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/build.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/lint.yaml/badge.svg) ![example workflow](https://github.com/mrnaveira/rust-blockchain/actions/workflows/test.yaml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/mrnaveira/rust-blockchain/badge.svg?service=github)](https://coveralls.io/github/mrnaveira/rust-blockchain)
 
-A simple blockchain example written in Rust:
+A Proof of Work blockchain written in Rust. For educational purposes only.
+
+Features:
 * Defines data structures to model a minimum blockchain
 * Mines new blocks in a separate thread, running a Proof of Work algorithm with a fixed difficulty
+* Synchronizes new blocks with peer nodes in a decentralized network
 * Provides a REST API to retrieve the blocks and add transactions
 
 ## Getting Started
@@ -115,7 +118,7 @@ Also, both the miner and the API must **share** data, specifically the **block l
 - [x] Transaction pool that holds not realized transactions
 - [x] Basic miner that adds transactions every N seconds
 - [x] Basic PoW implementation: nonce, miner calculates hashes and fixed difficulty
-- [ ] Mining peers communicate new blocks over the network
+- [x] Mining peers communicate new blocks over the network
 - [ ] Block rewards: subsidy and transaction fees
 - [ ] Validate transaction balances
 - [ ] Dynamic difficulty (aiming for constant time intervals between blocks)

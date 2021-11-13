@@ -143,6 +143,11 @@ impl Server {
         self.wait_for_log_message("Added new peer block");
     }
 
+    // block the execution until we receive a new block via api
+    pub fn wait_to_receive_block_in_api(&mut self) {
+        self.wait_for_log_message("Received new block");
+    }
+
     // block the execution until a message is contained in the process output
     // or until a max time has passed
     fn wait_for_log_message(&mut self, message: &str) {
@@ -164,13 +169,11 @@ impl Server {
     fn search_message_in_output(&mut self, message: &str) -> bool {
         let lines = self.output.lock().unwrap();
         for line in lines.iter() {
-            println!("Found: {}", message);
             if line.contains(message) {
                 return true;
             }
         }
 
-        println!("Not found: {}", message);
         false
     }
 

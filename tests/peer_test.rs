@@ -6,7 +6,7 @@ use serial_test::serial;
 #[test]
 #[serial]
 #[cfg(unix)]
-fn test_should_sync_new_valid_blocks() {
+fn test_should_receive_new_valid_blocks() {
     // We will use this node to be the most updated one
     let leader_node = ServerBuilder::new().port(8000).start();
 
@@ -34,7 +34,7 @@ fn test_should_sync_new_valid_blocks() {
 #[test]
 #[serial]
 #[cfg(unix)]
-fn test_should_not_sync_new_invalid_blocks() {
+fn test_should_not_receive_new_invalid_blocks() {
     // We will use this node to be the most updated one
     let leader_node = ServerBuilder::new().port(8000).start();
 
@@ -79,4 +79,32 @@ fn test_should_ignore_unavailable_peers() {
 
     // even if one of the peers does not exist, it ignores the error and adds blocks from available peers
     assert_eq!(follower_node.get_blocks().len(), 2);
+}
+
+#[test]
+#[serial]
+#[cfg(unix)]
+fn test_should_send_new_blocks() {
+    // This node will always be behind the leader node
+    let mut follower_node = ServerBuilder::new().port(8000).start();
+
+    // We will use this node to be the most updated one
+    let leader_node = ServerBuilder::new().port(8001).peer(8000).start();
+
+    // At the beggining, both nodes will only have the genesis blocks
+    assert_eq!(leader_node.get_blocks().len(), 1);
+    assert_eq!(follower_node.get_blocks().len(), 1);
+
+    // we create a new valid block in the leader node
+    leader_node.add_valid_block();
+    assert_eq!(leader_node.get_blocks().len(), 2);
+
+    // the follower node should eventually receive and add the new block
+    follower_node.wait_to_receive_block_in_api();
+    assert_eq!(follower_node.get_blocks().len(), 2);
+
+    // the last blocks from both the follower and the leader must match
+    let last_leader_block = leader_node.get_last_block();
+    let last_follower_block = leader_node.get_last_block();
+    assert_eq!(last_follower_block, last_leader_block);
 }

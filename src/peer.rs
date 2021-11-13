@@ -8,7 +8,7 @@ use crate::{
     },
 };
 use anyhow::Result;
-use isahc::ReadResponseExt;
+use isahc::{ReadResponseExt, Request};
 
 pub struct Peer {
     peer_addresses: Vec<String>,
@@ -43,14 +43,21 @@ impl Peer {
         );
 
         // At regular intervals of time, we try to sync new blocks from our peers
+        let mut last_sent_block_index = self.get_last_block_index();
         loop {
-            self.sync_blocks();
+            self.try_receive_new_blocks();
+            self.try_send_new_blocks(last_sent_block_index);
+            last_sent_block_index = self.get_last_block_index();
             sleep_millis(self.peer_sync_ms);
         }
     }
 
+    fn get_last_block_index(&self) -> usize {
+        self.blockchain.get_last_block().index as usize
+    }
+
     // Retrieve new blocks from all peers and add them to the blockchain
-    fn sync_blocks(&self) {
+    fn try_receive_new_blocks(&self) {
         for address in self.peer_addresses.iter() {
             // we don't want to panic if one peer is down or not working properly
             let result = panic::catch_unwind(|| {
@@ -115,5 +122,50 @@ impl Peer {
         // parse and return the list of blocks from the response body
         let raw_body = response.text().unwrap();
         serde_json::from_str(&raw_body).unwrap()
+    }
+
+    // Try to broadcast all new blocks to peers since last time we broadcasted
+    fn try_send_new_blocks(&self, last_send_block_index: usize) {
+        let new_blocks = self.get_new_blocks_since(last_send_block_index);
+
+        for block in new_blocks.iter() {
+            for address in self.peer_addresses.iter() {
+                // we don't want to panic if one peer is down or not working properly
+                let result = panic::catch_unwind(|| {
+                    Peer::send_block_to_peer(address, block);
+                });
+
+                if result.is_err() {
+                    error!("Could not send block {} to peer {}", block.index, address);
+                    return;
+                }
+
+                info!("Sended new block {} to peer {}", block.index, address);
+            }
+        }
+    }
+
+    // Return all new blocks added to the blockchain since the one with the indicated index
+    fn get_new_blocks_since(&self, start_index: usize) -> Vec<Block> {
+        let last_block_index = self.get_last_block_index();
+        let new_blocks_range = start_index + 1..=last_block_index;
+        self.blockchain
+            .get_all_blocks()
+            .get(new_blocks_range)
+            .unwrap()
+            .to_vec()
+    }
+
+    // Send a block to a peer using the REST API of the peer
+    fn send_block_to_peer(address: &str, block: &Block) {
+        let uri = format!("{}/blocks", address);
+        let body = serde_json::to_string(&block).unwrap();
+
+        let request = Request::post(uri)
+            .header("Content-Type", "application/json")
+            .body(body)
+            .unwrap();
+
+        isahc::send(request).unwrap();
     }
 }

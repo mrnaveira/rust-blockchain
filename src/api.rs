@@ -75,10 +75,13 @@ async fn add_block(state: web::Data<ApiState>, block_json: web::Json<Block>) -> 
     block.hash = block.calculate_hash();
 
     let blockchain = &state.blockchain;
-    let result = blockchain.add_block(block);
+    let result = blockchain.add_block(block.clone());
 
     match result {
-        Ok(_) => HttpResponse::Ok().finish(),
+        Ok(_) => {
+            info!("Received new block {}", block.index);
+            HttpResponse::Ok().finish()
+        }
         Err(error) => HttpResponse::BadRequest().body(error.to_string()),
     }
 }

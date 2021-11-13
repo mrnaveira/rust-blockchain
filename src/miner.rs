@@ -1,9 +1,11 @@
 use crate::{
     model::{Block, BlockHash, Blockchain, TransactionPool, TransactionVec},
-    util::{execution::Runnable, Context},
+    util::{
+        execution::{sleep_millis, Runnable},
+        Context,
+    },
 };
 use anyhow::Result;
-use std::{thread, time};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -15,7 +17,6 @@ pub enum MinerError {
 pub struct Miner {
     max_blocks: u64,
     max_nonce: u64,
-    difficulty: usize,
     tx_waiting_ms: u64,
     blockchain: Blockchain,
     pool: TransactionPool,
@@ -35,7 +36,6 @@ impl Miner {
         Miner {
             max_blocks: context.config.max_blocks,
             max_nonce: context.config.max_nonce,
-            difficulty: context.config.difficulty,
             tx_waiting_ms: context.config.tx_waiting_ms,
             blockchain: context.blockchain.clone(),
             pool: context.pool.clone(),
@@ -46,7 +46,10 @@ impl Miner {
     // Try to constanly calculate and append new valid blocks to the blockchain,
     // including all pending transactions in the transaction pool each time
     pub fn start(&self) -> Result<()> {
-        info!("start minining with difficulty {}", self.difficulty);
+        info!(
+            "start minining with difficulty {}",
+            self.blockchain.difficulty
+        );
 
         // In each loop it tries to find the next valid block and append it to the blockchain
         let mut block_counter = 0;
@@ -61,7 +64,7 @@ impl Miner {
 
             // Do not try to mine a block if there are no transactions in the pool
             if transactions.is_empty() {
-                self.sleep_millis(self.tx_waiting_ms);
+                sleep_millis(self.tx_waiting_ms);
                 continue;
             }
 
@@ -85,19 +88,13 @@ impl Miner {
 
     // Creates binary data mask with the amount of left padding zeroes indicated by the "difficulty" value
     // Used to easily compare if a newly created block has a hash that matches the difficulty
-    fn create_target(difficulty: usize) -> BlockHash {
+    fn create_target(difficulty: u32) -> BlockHash {
         BlockHash::MAX >> difficulty
     }
 
     // check if we have hit the limit of mined blocks (if the limit is set)
     fn must_stop_mining(&self, block_counter: u64) -> bool {
         self.max_blocks > 0 && block_counter >= self.max_blocks
-    }
-
-    // Suspend the execution of the thread by a particular amount of milliseconds
-    fn sleep_millis(&self, millis: u64) {
-        let wait_duration = time::Duration::from_millis(millis);
-        thread::sleep(wait_duration);
     }
 
     // Tries to find the next valid block of the blockchain
@@ -139,7 +136,7 @@ mod tests {
     use crate::model::Transaction;
 
     // We use SHA 256 hashes
-    const MAX_DIFFICULTY: usize = 256;
+    const MAX_DIFFICULTY: u32 = 256;
 
     #[test]
     fn test_create_next_block() {
@@ -159,7 +156,7 @@ mod tests {
         // the target must have as many leading zeroes
         for difficulty in 0..MAX_DIFFICULTY {
             let target = Miner::create_target(difficulty);
-            assert_eq!(target.leading_zeros(), difficulty as u32);
+            assert_eq!(target.leading_zeros(), difficulty);
         }
     }
 
@@ -168,7 +165,7 @@ mod tests {
         // when passing an overflowing difficulty,
         // it must default to the max difficulty
         let target = Miner::create_target(MAX_DIFFICULTY + 1);
-        assert_eq!(target.leading_zeros(), MAX_DIFFICULTY as u32);
+        assert_eq!(target.leading_zeros(), MAX_DIFFICULTY);
     }
 
     #[test]
@@ -230,7 +227,7 @@ mod tests {
         let mined_block = &blocks[1];
 
         // the mined block must be valid
-        assert_mined_block_is_valid(mined_block, genesis_block, miner.difficulty);
+        assert_mined_block_is_valid(mined_block, genesis_block, blockchain.difficulty);
 
         // the mined block must include the transaction added previously
         let mined_transactions = &mined_block.transactions;
@@ -264,18 +261,17 @@ mod tests {
         create_miner(difficulty, max_nonce)
     }
 
-    fn create_miner(difficulty: usize, max_nonce: u64) -> Miner {
+    fn create_miner(difficulty: u32, max_nonce: u64) -> Miner {
         let max_blocks = 1;
         let tx_waiting_ms = 1;
         let target = Miner::create_target(difficulty);
 
-        let blockchain = Blockchain::new();
+        let blockchain = Blockchain::new(difficulty);
         let pool = TransactionPool::new();
 
         Miner {
             max_blocks,
             max_nonce,
-            difficulty,
             tx_waiting_ms,
             blockchain,
             pool,
@@ -296,7 +292,7 @@ mod tests {
         pool.add_transaction(transaction.clone());
     }
 
-    fn assert_mined_block_is_valid(mined_block: &Block, previous_block: &Block, difficulty: usize) {
+    fn assert_mined_block_is_valid(mined_block: &Block, previous_block: &Block, difficulty: u32) {
         assert_eq!(mined_block.index, previous_block.index + 1);
         assert_eq!(mined_block.previous_hash, previous_block.hash);
         assert!(mined_block.hash.leading_zeros() >= difficulty as u32);

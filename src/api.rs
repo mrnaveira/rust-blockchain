@@ -1,5 +1,5 @@
 use crate::{
-    model::{Blockchain, Transaction, TransactionPool},
+    model::{Block, Blockchain, Transaction, TransactionPool},
     util::{execution::Runnable, Context},
 };
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
@@ -46,6 +46,7 @@ async fn start_server(port: u16, blockchain: Blockchain, pool: TransactionPool) 
         App::new()
             .app_data(api_state.clone())
             .route("/blocks", web::get().to(get_blocks))
+            .route("/blocks", web::post().to(add_block))
             .route("/transactions", web::post().to(add_transaction))
     })
     .bind(url)
@@ -64,17 +65,33 @@ async fn get_blocks(state: web::Data<ApiState>) -> impl Responder {
     HttpResponse::Ok().json(&blocks)
 }
 
+// Adds a new block to the blockchain
+async fn add_block(state: web::Data<ApiState>, block_json: web::Json<Block>) -> HttpResponse {
+    let mut block = block_json.into_inner();
+
+    // The hash of the block is mandatory and the blockchain checks if it's correct
+    // That's a bit unconvenient for manual use of the API
+    // So we ignore the comming hash and recalculate it again before adding to the blockchain
+    block.hash = block.calculate_hash();
+
+    let blockchain = &state.blockchain;
+    let result = blockchain.add_block(block.clone());
+
+    match result {
+        Ok(_) => {
+            info!("Received new block {}", block.index);
+            HttpResponse::Ok().finish()
+        }
+        Err(error) => HttpResponse::BadRequest().body(error.to_string()),
+    }
+}
+
 // Adds a new transaction to the pool, to be included on the next block
 async fn add_transaction(
     state: web::Data<ApiState>,
     transaction_json: web::Json<Transaction>,
 ) -> impl Responder {
-    let transaction = Transaction {
-        sender: transaction_json.sender.clone(),
-        recipient: transaction_json.recipient.clone(),
-        amount: transaction_json.amount,
-    };
-
+    let transaction = transaction_json.into_inner();
     let pool = &state.pool;
     pool.add_transaction(transaction);
 

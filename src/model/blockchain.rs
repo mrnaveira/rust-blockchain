@@ -42,8 +42,7 @@ impl Blockchain {
         let genesis_block = Blockchain::create_genesis_block();
 
         // add the genesis block to the synced vec of blocks
-        let mut blocks = BlockVec::default();
-        blocks.push(genesis_block);
+        let blocks = vec![genesis_block];
         let synced_blocks = Arc::new(Mutex::new(blocks));
 
         Blockchain {

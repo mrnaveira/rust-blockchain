@@ -2,7 +2,7 @@ mod common;
 
 use serial_test::serial;
 
-use crate::common::{Api, Block, BlockHash, ServerBuilder, Transaction};
+use crate::common::{Api, Block, BlockHash, ServerBuilder, Transaction, ALICE, BOB};
 
 #[test]
 #[serial]
@@ -33,8 +33,8 @@ fn test_should_let_add_transactions() {
 
     // create and add a new transaction to the pool
     let transaction = Transaction {
-        sender: "1".to_string(),
-        recipient: "2".to_string(),
+        sender: ALICE.to_string(),
+        recipient: BOB.to_string(),
         amount: 100 as u64,
     };
     let res = node.add_transaction(&transaction);

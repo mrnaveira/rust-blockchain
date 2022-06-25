@@ -23,6 +23,12 @@ pub struct Transaction {
     pub amount: u64,
 }
 
+#[allow(dead_code)]
+pub const ALICE: &str = "f780b958227ff0bf5795ede8f9f7eaac67e7e06666b043a400026cbd421ce28e";
+
+#[allow(dead_code)]
+pub const BOB: &str = "51df097c03c0a6e64e54a6fce90cb6968adebd85955917ed438e3d3c05f2f00f";
+
 pub trait Api {
     fn get_blocks(&self) -> Vec<Block>;
     fn get_last_block(&self) -> Block;

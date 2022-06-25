@@ -133,7 +133,10 @@ impl Miner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::Transaction;
+    use crate::model::{
+        test_util::{alice, bob},
+        Transaction,
+    };
 
     // We use SHA 256 hashes
     const MAX_DIFFICULTY: u32 = 256;
@@ -285,8 +288,8 @@ mod tests {
 
     fn add_mock_transaction(pool: &TransactionPool) {
         let transaction = Transaction {
-            sender: "1".to_string(),
-            recipient: "2".to_string(),
+            sender: alice(),
+            recipient: bob(),
             amount: 3,
         };
         pool.add_transaction(transaction.clone());

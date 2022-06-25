@@ -46,6 +46,8 @@ impl TransactionPool {
 
 #[cfg(test)]
 mod tests {
+    use crate::model::test_util::{alice, bob};
+
     use super::*;
 
     #[test]
@@ -97,8 +99,8 @@ mod tests {
 
     fn create_mock_transaction(amount: u64) -> Transaction {
         Transaction {
-            sender: "1".to_string(),
-            recipient: "2".to_string(),
+            sender: alice(),
+            recipient: bob(),
             amount: amount,
         }
     }

@@ -1,32 +1,30 @@
 {
+	"variables": [],
 	"info": {
-		"_postman_id": "df95099b-2177-4f38-86a7-deb3c0158447",
 		"name": "rust-blockchain",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"_postman_id": "48bc9439-7670-da27-ee9e-8c3ff3c5cc79",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "Get all blocks of the blockchain",
 			"request": {
+				"url": "http://localhost:8000/blocks",
 				"method": "GET",
 				"header": [],
-				"url": {
-					"raw": "http://localhost:8000/blocks",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8000",
-					"path": [
-						"blocks"
-					]
-				}
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": ""
 			},
 			"response": []
 		},
 		{
 			"name": "Add a new block",
 			"request": {
+				"url": "http://localhost:8000/blocks",
 				"method": "POST",
 				"header": [
 					{
@@ -38,45 +36,27 @@
 					"mode": "raw",
 					"raw": "{\n    \"index\": 1,\n    \"timestamp\": 0,\n    \"nonce\": 0,\n    \"previous_hash\": \"0x0\",\n    \"hash\": \"0x0\",\n    \"transactions\": [\n        {\n            \"sender\": \"0\",\n            \"recipient\": \"1\",\n            \"amount\": 1000\n        },\n        {\n            \"sender\": \"0\",\n            \"recipient\": \"2\",\n            \"amount\": 1000\n        }\n    ]\n}"
 				},
-				"url": {
-					"raw": "http://localhost:8000/blocks",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8000",
-					"path": [
-						"blocks"
-					]
-				}
+				"description": ""
 			},
 			"response": []
 		},
 		{
 			"name": "Add a new transaction to the pool",
 			"request": {
+				"url": "http://localhost:8000/transactions",
 				"method": "POST",
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json"
+						"value": "application/json",
+						"description": ""
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"sender\": \"1\",\n    \"recipient\": \"2\",\n    \"amount\": 1002\n}"
+					"raw": "{\n    \"sender\": \"f780b958227ff0bf5795ede8f9f7eaac67e7e06666b043a400026cbd421ce28e\",\n    \"recipient\": \"51df097c03c0a6e64e54a6fce90cb6968adebd85955917ed438e3d3c05f2f00f\",\n    \"amount\": 1002\n}"
 				},
-				"url": {
-					"raw": "http://localhost:8000/transactions",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8000",
-					"path": [
-						"transactions"
-					]
-				}
+				"description": ""
 			},
 			"response": []
 		}

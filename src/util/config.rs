@@ -4,6 +4,8 @@ use dotenv::dotenv;
 use std::env;
 use std::str::FromStr;
 
+use crate::model::Address;
+
 type StringVec = Vec<String>;
 
 // Encapsulates configuration values to be used across the application
@@ -21,6 +23,7 @@ pub struct Config {
     pub max_nonce: u64,
     pub difficulty: u32,
     pub tx_waiting_ms: u64,
+    pub miner_address: Address,
 }
 
 // The implementation reads the values from environment variables
@@ -43,6 +46,7 @@ impl Config {
             max_nonce: Config::read_envvar::<u64>("MAX_NONCE", 1_000_000),
             difficulty: Config::read_envvar::<u32>("DIFFICULTY", 10),
             tx_waiting_ms: Config::read_envvar::<u64>("TRANSACTION_WAITING_MS", 10000),
+            miner_address: Config::read_envvar::<Address>("MINER_ADDRESS", Address::default()),
         }
     }
 

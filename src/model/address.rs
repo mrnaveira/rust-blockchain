@@ -1,6 +1,7 @@
 use std::{
     convert::{TryFrom, TryInto},
     fmt,
+    str::FromStr,
 };
 
 use serde::{Deserialize, Serialize};
@@ -44,6 +45,14 @@ impl TryFrom<String> for Address {
             Ok(decoded_vec) => decoded_vec.try_into(),
             Err(_) => Err(AddressError::InvalidFormat),
         }
+    }
+}
+
+impl FromStr for Address {
+    type Err = AddressError;
+
+    fn from_str(s: &str) -> Result<Self, AddressError> {
+        Address::try_from(s.to_string())
     }
 }
 

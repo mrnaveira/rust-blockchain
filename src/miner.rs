@@ -18,6 +18,7 @@ pub enum MinerError {
 }
 
 pub struct Miner {
+    miner_address: Address,
     max_blocks: u64,
     max_nonce: u64,
     tx_waiting_ms: u64,
@@ -37,6 +38,7 @@ impl Miner {
         let target = Self::create_target(context.config.difficulty);
 
         Miner {
+            miner_address: context.config.miner_address.clone(),
             max_blocks: context.config.max_blocks,
             max_nonce: context.config.max_nonce,
             tx_waiting_ms: context.config.tx_waiting_ms,
@@ -105,7 +107,7 @@ impl Miner {
     // Returns either a valid block (that satisfies the difficulty) or "None" if no block was found
     fn mine_block(&self, last_block: &Block, transactions: &TransactionVec) -> Option<Block> {
         // Add the coinbase transaction as the first transaction in the block
-        let coinbase = Self::create_coinbase_transaction();
+        let coinbase = self.create_coinbase_transaction();
         let mut block_transactions = transactions.clone();
         block_transactions.insert(0, coinbase);
 
@@ -137,11 +139,10 @@ impl Miner {
         Block::new(index, nonce, previous_hash, transactions)
     }
 
-    fn create_coinbase_transaction() -> Transaction {
+    fn create_coinbase_transaction(&self) -> Transaction {
         Transaction {
             sender: Address::default(),
-            // TODO: the recipient should be configurable
-            recipient: Address::default(),
+            recipient: self.miner_address.clone(),
             amount: BLOCK_SUBSIDY,
         }
     }
@@ -282,6 +283,7 @@ mod tests {
     }
 
     fn create_miner(difficulty: u32, max_nonce: u64) -> Miner {
+        let miner_address = Address::default();
         let max_blocks = 1;
         let tx_waiting_ms = 1;
         let target = Miner::create_target(difficulty);
@@ -290,6 +292,7 @@ mod tests {
         let pool = TransactionPool::new();
 
         Miner {
+            miner_address,
             max_blocks,
             max_nonce,
             tx_waiting_ms,

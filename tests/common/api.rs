@@ -29,6 +29,9 @@ pub const ALICE: &str = "f780b958227ff0bf5795ede8f9f7eaac67e7e06666b043a400026cb
 #[allow(dead_code)]
 pub const BOB: &str = "51df097c03c0a6e64e54a6fce90cb6968adebd85955917ed438e3d3c05f2f00f";
 
+#[allow(dead_code)]
+pub const BLOCK_SUBSIDY: u64 = 100;
+
 pub trait Api {
     fn get_blocks(&self) -> Vec<Block>;
     fn get_last_block(&self) -> Block;
@@ -59,6 +62,11 @@ impl Api for Server {
 
     fn add_valid_block(&self) -> Response<Body> {
         let last_block = self.get_last_block();
+        let coinbase = Transaction {
+            sender: ALICE.to_string(),
+            recipient: ALICE.to_string(),
+            amount: BLOCK_SUBSIDY,
+        };
         let valid_block = Block {
             index: last_block.index + 1,
             timestamp: 0,
@@ -68,7 +76,7 @@ impl Api for Server {
             // the api automatically recalculates the hash...
             // ...so no need to add a valid one here
             hash: BlockHash::default(),
-            transactions: [].to_vec(),
+            transactions: vec![coinbase],
         };
         self.add_block(&valid_block)
     }

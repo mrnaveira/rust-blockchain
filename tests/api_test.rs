@@ -2,7 +2,7 @@ mod common;
 
 use serial_test::serial;
 
-use crate::common::{Api, Block, BlockHash, ServerBuilder, Transaction, ALICE, BOB};
+use crate::common::{Api, Block, BlockHash, ServerBuilder, Transaction, ALICE, BLOCK_SUBSIDY, BOB};
 
 #[test]
 #[serial]
@@ -52,9 +52,9 @@ fn test_should_let_add_transactions() {
     assert_eq!(mined_block.index, 1);
     assert_eq!(mined_block.previous_hash, genesis_block.hash);
 
-    // ...and contains the transaction that we added
-    assert_eq!(mined_block.transactions.len(), 1);
-    let mined_transaction = mined_block.transactions.first().unwrap();
+    // ...and contains the transaction that we added (plus the coinbase)
+    assert_eq!(mined_block.transactions.len(), 2);
+    let mined_transaction = mined_block.transactions.last().unwrap();
     assert_eq!(*mined_transaction, transaction);
 }
 
@@ -64,6 +64,11 @@ fn test_should_let_add_transactions() {
 fn test_should_let_add_valid_block() {
     let node = ServerBuilder::new().start();
     let genesis_block = node.get_last_block();
+    let coinbase = Transaction {
+        sender: ALICE.to_string(),
+        recipient: ALICE.to_string(),
+        amount: BLOCK_SUBSIDY,
+    };
 
     let valid_block = Block {
         // there is the genesis block already, so the next index is 1
@@ -75,7 +80,8 @@ fn test_should_let_add_valid_block() {
         // the api automatically recalculates the hash...
         // ...so no need to add a valid one here
         hash: BlockHash::default(),
-        transactions: [].to_vec(),
+        // must include the coinbase transaction
+        transactions: vec![coinbase],
     };
     let res = node.add_block(&valid_block);
     assert_eq!(res.status().as_u16(), 200);

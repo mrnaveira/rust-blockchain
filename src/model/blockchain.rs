@@ -9,6 +9,8 @@ pub type BlockVec = Vec<Block>;
 // We don't need to export this because concurrency is encapsulated in this file
 type SyncedBlockVec = Arc<Mutex<BlockVec>>;
 
+pub const BLOCK_SUBSIDY: u64 = 100;
+
 // Error types to return when trying to add blocks with invalid fields
 #[derive(Error, PartialEq, Debug)]
 #[allow(clippy::enum_variant_names)]
@@ -24,6 +26,9 @@ pub enum BlockchainError {
 
     #[error("Invalid difficulty")]
     InvalidDifficulty,
+
+    #[error("Invalid coinbase transaction")]
+    InvalidCoinbaseTransaction,
 }
 
 // Struct that holds all the blocks in the blockhain
@@ -49,6 +54,22 @@ impl Blockchain {
             difficulty,
             blocks: synced_blocks,
         }
+    }
+
+    fn create_genesis_block() -> Block {
+        let index = 0;
+        let nonce = 0;
+        let previous_hash = BlockHash::default();
+        let transactions = Vec::new();
+
+        let mut block = Block::new(index, nonce, previous_hash, transactions);
+
+        // to easily sync multiple nodes in a network, the genesis blocks must match
+        // so we clear the timestamp so the hash of the genesis block is predictable
+        block.timestamp = 0;
+        block.hash = block.calculate_hash();
+
+        block
     }
 
     // Returns a copy of the most recent block in the blockchain
@@ -96,31 +117,35 @@ impl Blockchain {
             return Err(BlockchainError::InvalidDifficulty.into());
         }
 
+        self.validate_coinbase(&block)?;
+
         // append the block to the end
         blocks.push(block);
 
         Ok(())
     }
 
-    fn create_genesis_block() -> Block {
-        let index = 0;
-        let nonce = 0;
-        let previous_hash = BlockHash::default();
-        let transactions = Vec::new();
+    fn validate_coinbase(&self, block: &Block) -> Result<()> {
+        let coinbase_err = Err(BlockchainError::InvalidCoinbaseTransaction.into());
 
-        let mut block = Block::new(index, nonce, previous_hash, transactions);
+        let coinbase = match block.transactions.first() {
+            Some(transaction) => transaction,
+            None => return coinbase_err,
+        };
 
-        // to easily sync multiple nodes in a network, the genesis blocks must match
-        // so we clear the timestamp so the hash of the genesis block is predictable
-        block.timestamp = 0;
-        block.hash = block.calculate_hash();
+        // In coinbase transactions, we only care about the amount
+        if coinbase.amount != BLOCK_SUBSIDY {
+            return coinbase_err;
+        }
 
-        block
+        Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::model::{Address, Transaction};
+
     use super::*;
 
     const NO_DIFFICULTY: u32 = 0;
@@ -150,7 +175,12 @@ mod tests {
 
         // create a valid block
         let previous_hash = blockchain.get_last_block().hash;
-        let block = Block::new(1, 0, previous_hash, Vec::new());
+        let coinbase = Transaction {
+            sender: Address::default(),
+            recipient: Address::default(),
+            amount: BLOCK_SUBSIDY,
+        };
+        let block = Block::new(1, 0, previous_hash, vec![coinbase]);
 
         // add it to the blockchain and check it was really added
         let result = blockchain.add_block(block.clone());
@@ -220,6 +250,37 @@ mod tests {
         // try adding the invalid block, it should return an error
         let result = blockchain.add_block(block.clone());
         assert_err(result, BlockchainError::InvalidDifficulty);
+    }
+
+    #[test]
+    fn should_not_let_adding_block_with_no_coinbase() {
+        let blockchain = Blockchain::new(NO_DIFFICULTY);
+
+        // create a block without a coinbase
+        let previous_hash = blockchain.get_last_block().hash;
+        let block = Block::new(1, 0, previous_hash, vec![]);
+
+        // try adding the invalid block, it should return an error
+        let result = blockchain.add_block(block.clone());
+        assert_err(result, BlockchainError::InvalidCoinbaseTransaction);
+    }
+
+    #[test]
+    fn should_not_let_adding_block_with_invalid_coinbase() {
+        let blockchain = Blockchain::new(NO_DIFFICULTY);
+
+        // create a block with an invalid coinbase amount
+        let previous_hash = blockchain.get_last_block().hash;
+        let coinbase = Transaction {
+            sender: Address::default(),
+            recipient: Address::default(),
+            amount: BLOCK_SUBSIDY + 1,
+        };
+        let block = Block::new(1, 0, previous_hash, vec![coinbase]);
+
+        // try adding the invalid block, it should return an error
+        let result = blockchain.add_block(block.clone());
+        assert_err(result, BlockchainError::InvalidCoinbaseTransaction);
     }
 
     fn assert_err(result: Result<(), anyhow::Error>, error_type: BlockchainError) {

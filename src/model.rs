@@ -8,7 +8,7 @@ mod transaction_pool;
 // It also avoids verbose module imports from other files
 pub use address::Address;
 pub use block::{Block, BlockHash};
-pub use blockchain::{Blockchain, BlockchainError};
+pub use blockchain::{Blockchain, BlockchainError, BLOCK_SUBSIDY};
 pub use transaction::Transaction;
 pub use transaction_pool::{TransactionPool, TransactionVec};
 

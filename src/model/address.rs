@@ -1,6 +1,7 @@
 use std::{
     convert::{TryFrom, TryInto},
     fmt,
+    str::FromStr,
 };
 
 use serde::{Deserialize, Serialize};
@@ -20,7 +21,7 @@ pub enum AddressError {
     InvalidLength,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(try_from = "String", into = "String")]
 pub struct Address([Byte; LEN]);
 
@@ -44,6 +45,14 @@ impl TryFrom<String> for Address {
             Ok(decoded_vec) => decoded_vec.try_into(),
             Err(_) => Err(AddressError::InvalidFormat),
         }
+    }
+}
+
+impl FromStr for Address {
+    type Err = AddressError;
+
+    fn from_str(s: &str) -> Result<Self, AddressError> {
+        Address::try_from(s.to_string())
     }
 }
 
@@ -84,7 +93,7 @@ pub mod test_util {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use std::{convert::TryFrom, str::FromStr};
 
     use crate::model::Address;
 
@@ -92,9 +101,10 @@ mod tests {
 
     #[test]
     fn parse_valid_address() {
-        let hex_str =
-            "f780b958227ff0bf5795ede8f9f7eaac67e7e06666b043a400026cbd421ce28e".to_string();
-        let address = Address::try_from(hex_str.clone()).unwrap();
+        let hex_str = "f780b958227ff0bf5795ede8f9f7eaac67e7e06666b043a400026cbd421ce28e";
+        let address = Address::try_from(hex_str.to_string()).unwrap();
+        assert_eq!(address.to_string(), hex_str);
+        let address = Address::from_str(hex_str).unwrap();
         assert_eq!(address.to_string(), hex_str);
     }
 

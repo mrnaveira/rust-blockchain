@@ -252,6 +252,37 @@ mod tests {
         assert_err(result, BlockchainError::InvalidDifficulty);
     }
 
+    #[test]
+    fn should_not_let_adding_block_with_no_coinbase() {
+        let blockchain = Blockchain::new(NO_DIFFICULTY);
+
+        // create a block without a coinbase
+        let previous_hash = blockchain.get_last_block().hash;
+        let block = Block::new(1, 0, previous_hash, vec![]);
+
+        // try adding the invalid block, it should return an error
+        let result = blockchain.add_block(block.clone());
+        assert_err(result, BlockchainError::InvalidCoinbaseTransaction);
+    }
+
+    #[test]
+    fn should_not_let_adding_block_with_invalid_coinbase() {
+        let blockchain = Blockchain::new(NO_DIFFICULTY);
+
+        // create a block with an invalid coinbase amount
+        let previous_hash = blockchain.get_last_block().hash;
+        let coinbase = Transaction {
+            sender: Address::default(),
+            recipient: Address::default(),
+            amount: BLOCK_SUBSIDY + 1,
+        };
+        let block = Block::new(1, 0, previous_hash, vec![coinbase]);
+
+        // try adding the invalid block, it should return an error
+        let result = blockchain.add_block(block.clone());
+        assert_err(result, BlockchainError::InvalidCoinbaseTransaction);
+    }
+
     fn assert_err(result: Result<(), anyhow::Error>, error_type: BlockchainError) {
         let err = result.unwrap_err().downcast::<BlockchainError>().unwrap();
         assert_eq!(err, error_type);

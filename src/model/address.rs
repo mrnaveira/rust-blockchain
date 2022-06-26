@@ -20,7 +20,7 @@ pub enum AddressError {
     InvalidLength,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(try_from = "String", into = "String")]
 pub struct Address([Byte; LEN]);
 

@@ -1,5 +1,8 @@
 use crate::{
-    model::{Block, BlockHash, Blockchain, TransactionPool, TransactionVec},
+    model::{
+        Address, Block, BlockHash, Blockchain, Transaction, TransactionPool, TransactionVec,
+        BLOCK_SUBSIDY,
+    },
     util::{
         execution::{sleep_millis, Runnable},
         Context,
@@ -31,7 +34,7 @@ impl Runnable for Miner {
 
 impl Miner {
     pub fn new(context: &Context) -> Miner {
-        let target = Miner::create_target(context.config.difficulty);
+        let target = Self::create_target(context.config.difficulty);
 
         Miner {
             max_blocks: context.config.max_blocks,
@@ -70,7 +73,7 @@ impl Miner {
 
             // try to find a valid next block of the blockchain
             let last_block = self.blockchain.get_last_block();
-            let mining_result = self.mine_block(&last_block, transactions.clone());
+            let mining_result = self.mine_block(&last_block, &transactions.clone());
             match mining_result {
                 Some(block) => {
                     info!("valid block found for index {}", block.index);
@@ -100,9 +103,14 @@ impl Miner {
     // Tries to find the next valid block of the blockchain
     // It will create blocks with different "nonce" values until one has a hash that matches the difficulty
     // Returns either a valid block (that satisfies the difficulty) or "None" if no block was found
-    fn mine_block(&self, last_block: &Block, transactions: TransactionVec) -> Option<Block> {
+    fn mine_block(&self, last_block: &Block, transactions: &TransactionVec) -> Option<Block> {
+        // Add the coinbase transaction as the first transaction in the block
+        let coinbase = Self::create_coinbase_transaction();
+        let mut block_transactions = transactions.clone();
+        block_transactions.insert(0, coinbase);
+
         for nonce in 0..self.max_nonce {
-            let next_block = self.create_next_block(last_block, transactions.clone(), nonce);
+            let next_block = self.create_next_block(last_block, block_transactions.clone(), nonce);
 
             // A valid block must have a hash with enough starting zeroes
             // To check that, we simply compare against a binary data mask
@@ -127,6 +135,15 @@ impl Miner {
 
         // hash of the new block is automatically calculated on creation
         Block::new(index, nonce, previous_hash, transactions)
+    }
+
+    fn create_coinbase_transaction() -> Transaction {
+        Transaction {
+            sender: Address::default(),
+            // TODO: the recipient should be configurable
+            recipient: Address::default(),
+            amount: BLOCK_SUBSIDY,
+        }
     }
 }
 
@@ -182,7 +199,7 @@ mod tests {
         // check that the block is mined
         let miner = create_miner(difficulty, max_nonce);
         let last_block = create_empty_block();
-        let result = miner.mine_block(&last_block, Vec::new());
+        let result = miner.mine_block(&last_block, &Vec::new());
         assert!(result.is_some());
 
         // check that the block is valid
@@ -202,7 +219,7 @@ mod tests {
         // check that the block is not mined
         let miner = create_miner(difficulty, max_nonce);
         let last_block = create_empty_block();
-        let result = miner.mine_block(&last_block, Vec::new());
+        let result = miner.mine_block(&last_block, &Vec::new());
         assert!(result.is_none());
     }
 
@@ -232,9 +249,9 @@ mod tests {
         // the mined block must be valid
         assert_mined_block_is_valid(mined_block, genesis_block, blockchain.difficulty);
 
-        // the mined block must include the transaction added previously
+        // the mined block must include the transaction added previously plus the coinbase
         let mined_transactions = &mined_block.transactions;
-        assert_eq!(mined_transactions.len(), 1);
+        assert_eq!(mined_transactions.len(), 2);
 
         // the transaction pool must be empty
         // because the transaction was added to the block when mining

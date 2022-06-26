@@ -15,7 +15,7 @@ jobs:
   
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: stable
           override: true
       
       - name: Install llvm-tools-preview
@@ -26,7 +26,7 @@ jobs:
 
       - name: Run grcov
         env:
-          RUSTFLAGS: '-Zinstrument-coverage'
+          RUSTFLAGS: '-C instrument-coverage'
           LLVM_PROFILE_FILE: 'rust_blockchain-%p-%m.profraw'
         run: |
           cargo build

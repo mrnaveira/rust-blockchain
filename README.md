@@ -25,7 +25,7 @@ $ cargo test
 $ cargo build --release
 
 # Run the application
-$ ./target/release/rust_blockchain
+$ ./target/release/node
 ```
 
 The application will start mining and listening on port `8000` for incoming client requests via a REST API. To change any environment variable (port, mining parameters, etc.) refer to the `.env.example` file.
@@ -116,7 +116,7 @@ Also, all threads share data, specifically the **block list** and the **transact
 - [x] Boilerplate REST API in Rust
 - [x] Structs to represent blockchain data
 - [x] API methods to add transactions and check blocks
-- [x] Transaction pool that holds not realized transactions
+- [x] Transaction pool that holds non-committed transactions
 - [x] Basic miner that adds transactions every N seconds
 - [x] Basic PoW implementation: nonce, miner calculates hashes and fixed difficulty
 - [x] Mining peers communicate new blocks over the network

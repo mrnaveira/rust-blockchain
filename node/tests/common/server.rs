@@ -101,7 +101,7 @@ impl Server {
 
     // start the blockchain application in the background
     fn start_process(config: &Config) -> Child {
-        Command::new(cargo_bin("rust_blockchain"))
+        Command::new(cargo_bin("node"))
             .env("PORT", config.port.to_string())
             .env("PEERS", config.peers.join(","))
             .env("DIFFICULTY", config.difficulty.to_string())

@@ -1195,6 +1195,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
+ "spec",
  "thiserror",
 ]
 
@@ -1795,6 +1796,20 @@ checksum = "66d72b759436ae32898a2af0a14218dbf55efde3feeb170eb623637db85ee1e0"
 dependencies = [
  "libc",
  "winapi",
+]
+
+[[package]]
+name = "spec"
+version = "0.4.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "ethereum-types",
+ "hex",
+ "rust-crypto",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]

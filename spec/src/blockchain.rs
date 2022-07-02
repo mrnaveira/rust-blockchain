@@ -204,7 +204,7 @@ impl Blockchain {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::{
+    use crate::{
         account_balance_map::AccountBalanceMapError,
         test_util::{alice, bob, carol},
         Address, Transaction,

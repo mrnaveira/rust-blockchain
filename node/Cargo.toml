@@ -6,6 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+spec = { path = "../spec" }
+
 actix-web = "4.1.0"
 anyhow = "1.0.58"
 chrono = "0.4.19"

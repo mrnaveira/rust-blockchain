@@ -1,14 +1,11 @@
-use std::panic;
-
-use crate::{
-    model::{Block, Blockchain},
-    util::{
-        execution::{sleep_millis, Runnable},
-        Context,
-    },
+use crate::util::{
+    execution::{sleep_millis, Runnable},
+    Context,
 };
 use anyhow::Result;
 use isahc::{ReadResponseExt, Request};
+use spec::{Block, Blockchain};
+use std::panic;
 
 pub struct Peer {
     peer_addresses: Vec<String>,

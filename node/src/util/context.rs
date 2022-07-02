@@ -1,5 +1,8 @@
+use spec::Blockchain;
+
+use crate::transaction_pool::TransactionPool;
+
 use super::Config;
-use crate::model::{Blockchain, TransactionPool};
 
 pub struct Context {
     pub config: Config,

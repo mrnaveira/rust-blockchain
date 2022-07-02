@@ -4,7 +4,7 @@ use dotenv::dotenv;
 use std::env;
 use std::str::FromStr;
 
-use crate::model::Address;
+use spec::Address;
 
 type StringVec = Vec<String>;
 

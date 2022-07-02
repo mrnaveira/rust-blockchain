@@ -23,6 +23,6 @@ cargo build
 cargo test
 
 # Generate a HTML report in the coverage/ directory.
-grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing --ignore "tests/*" -o ./coverage/
+grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing --ignore "*/tests/*" -o ./coverage/
 
 rm *.prof*

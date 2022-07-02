@@ -3,14 +3,15 @@ extern crate log;
 
 mod api;
 mod miner;
-mod model;
 mod peer;
+mod transaction_pool;
 mod util;
 
 use api::Api;
 use miner::Miner;
-use model::{Blockchain, TransactionPool};
 use peer::Peer;
+use spec::Blockchain;
+use transaction_pool::TransactionPool;
 use util::{execution, initialize_logger, termination, Config, Context};
 
 fn main() {

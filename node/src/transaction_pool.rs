@@ -1,4 +1,4 @@
-use super::Transaction;
+use spec::Transaction;
 use std::sync::{Arc, Mutex};
 
 pub type TransactionVec = Vec<Transaction>;
@@ -47,7 +47,7 @@ impl TransactionPool {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::test_util::{alice, bob};
+    use spec::Address;
 
     use super::*;
 
@@ -100,8 +100,8 @@ mod tests {
 
     fn create_mock_transaction(amount: u64) -> Transaction {
         Transaction {
-            sender: alice(),
-            recipient: bob(),
+            sender: Address::default(),
+            recipient: Address::default(),
             amount: amount,
         }
     }

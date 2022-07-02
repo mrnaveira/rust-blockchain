@@ -102,7 +102,7 @@ pub mod test_util {
 mod tests {
     use std::{convert::TryFrom, str::FromStr};
 
-    use crate::model::Address;
+    use crate::Address;
 
     use super::AddressError;
 

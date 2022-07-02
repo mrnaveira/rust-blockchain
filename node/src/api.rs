@@ -1,9 +1,10 @@
 use crate::{
-    model::{Block, Blockchain, Transaction, TransactionPool},
+    transaction_pool::TransactionPool,
     util::{execution::Runnable, Context},
 };
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use anyhow::Result;
+use spec::{Block, Blockchain, Transaction};
 
 struct ApiState {
     blockchain: Blockchain,

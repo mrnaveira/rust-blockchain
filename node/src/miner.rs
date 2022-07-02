@@ -1,14 +1,12 @@
 use crate::{
-    model::{
-        Address, Block, BlockHash, Blockchain, Transaction, TransactionPool, TransactionVec,
-        BLOCK_SUBSIDY,
-    },
+    transaction_pool::{TransactionPool, TransactionVec},
     util::{
         execution::{sleep_millis, Runnable},
         Context,
     },
 };
 use anyhow::Result;
+use spec::{Address, Block, BlockHash, Blockchain, Transaction, BLOCK_SUBSIDY};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -151,10 +149,6 @@ impl Miner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{
-        test_util::{alice, bob},
-        Transaction,
-    };
 
     // We use SHA 256 hashes
     const MAX_DIFFICULTY: u32 = 256;
@@ -283,7 +277,10 @@ mod tests {
     }
 
     fn miner_address() -> Address {
-        alice()
+        Address::try_from(
+            "f780b958227ff0bf5795ede8f9f7eaac67e7e06666b043a400026cbd421ce28e".to_string(),
+        )
+        .unwrap()
     }
 
     fn create_miner(difficulty: u32, max_nonce: u64) -> Miner {
@@ -315,7 +312,7 @@ mod tests {
         // so that address can be a sender of funds to other addresses
         let transaction = Transaction {
             sender: miner_address(),
-            recipient: bob(),
+            recipient: Address::default(),
             amount: 3,
         };
         pool.add_transaction(transaction.clone());

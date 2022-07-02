@@ -13,6 +13,8 @@ use nix::{
     unistd::Pid,
 };
 
+pub const MINER_ADDRESS: &str = "0000000000000000000000000000000000000000000000000000000000000000";
+
 pub struct Config {
     pub port: u16,
     pub peers: Vec<String>,
@@ -21,6 +23,7 @@ pub struct Config {
     pub max_nonce: u64,
     pub difficulty: u32,
     pub tx_waiting_ms: u64,
+    pub miner_address: String,
 }
 
 pub struct ServerBuilder {
@@ -42,6 +45,7 @@ impl ServerBuilder {
             peers: Vec::<String>::new(),
             max_blocks: 0, // unlimited blocks
             max_nonce: 0,  // unlimited nonce
+            miner_address: MINER_ADDRESS.to_string(),
         };
 
         ServerBuilder { config }
@@ -103,6 +107,7 @@ impl Server {
             .env("DIFFICULTY", config.difficulty.to_string())
             .env("TRANSACTION_WAITING_MS", config.tx_waiting_ms.to_string())
             .env("PEER_SYNC_MS", config.peer_sync_ms.to_string())
+            .env("MINER_ADDRESS", config.miner_address.clone())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()

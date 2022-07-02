@@ -21,7 +21,7 @@ pub enum AddressError {
     InvalidLength,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(try_from = "String", into = "String")]
 pub struct Address([Byte; LEN]);
 
@@ -86,6 +86,13 @@ pub mod test_util {
     pub fn bob() -> Address {
         Address::try_from(
             "51df097c03c0a6e64e54a6fce90cb6968adebd85955917ed438e3d3c05f2f00f".to_string(),
+        )
+        .unwrap()
+    }
+
+    pub fn carol() -> Address {
+        Address::try_from(
+            "b4f8293fb123ef3ff9ad49e923f4afc732774ee2bfdc3b278a359b54473c2277".to_string(),
         )
         .unwrap()
     }

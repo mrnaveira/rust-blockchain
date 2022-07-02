@@ -25,6 +25,7 @@ impl TransactionPool {
 
     // Adds a new transaction to the pool
     pub fn add_transaction(&self, transaction: Transaction) {
+        // TODO: transactions should be validated before being included in the pool
         let mut transactions = self.transactions.lock().unwrap();
         transactions.push(transaction);
         info!("transaction added");

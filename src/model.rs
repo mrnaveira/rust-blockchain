@@ -1,3 +1,4 @@
+mod account_balance_map;
 mod address;
 mod block;
 mod blockchain;

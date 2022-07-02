@@ -282,8 +282,12 @@ mod tests {
         create_miner(difficulty, max_nonce)
     }
 
+    fn miner_address() -> Address {
+        alice()
+    }
+
     fn create_miner(difficulty: u32, max_nonce: u64) -> Miner {
-        let miner_address = Address::default();
+        let miner_address = miner_address();
         let max_blocks = 1;
         let tx_waiting_ms = 1;
         let target = Miner::create_target(difficulty);
@@ -307,8 +311,10 @@ mod tests {
     }
 
     fn add_mock_transaction(pool: &TransactionPool) {
+        // the transaction is valid because the genesis block gives rewards to the miner address
+        // so that address can be a sender of funds to other addresses
         let transaction = Transaction {
-            sender: alice(),
+            sender: miner_address(),
             recipient: bob(),
             amount: 3,
         };

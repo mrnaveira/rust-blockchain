@@ -1,13 +1,17 @@
 use anyhow::Result;
-use std::sync::{Arc, Mutex};
+use std::{
+    slice::Iter,
+    sync::{Arc, Mutex},
+};
 use thiserror::Error;
 
-use super::{Block, BlockHash};
+use super::{account_balance_map::AccountBalanceMap, Block, BlockHash, Transaction};
 
 pub type BlockVec = Vec<Block>;
 
 // We don't need to export this because concurrency is encapsulated in this file
 type SyncedBlockVec = Arc<Mutex<BlockVec>>;
+type SyncedAccountBalanceVec = Arc<Mutex<AccountBalanceMap>>;
 
 pub const BLOCK_SUBSIDY: u64 = 100;
 
@@ -27,8 +31,11 @@ pub enum BlockchainError {
     #[error("Invalid difficulty")]
     InvalidDifficulty,
 
-    #[error("Invalid coinbase transaction")]
-    InvalidCoinbaseTransaction,
+    #[error("Coinbase transaction not found")]
+    CoinbaseTransactionNotFound,
+
+    #[error("Invalid coinbase amount")]
+    InvalidCoinbaseAmount,
 }
 
 // Struct that holds all the blocks in the blockhain
@@ -37,6 +44,7 @@ pub enum BlockchainError {
 pub struct Blockchain {
     pub difficulty: u32,
     blocks: SyncedBlockVec,
+    account_balances: SyncedAccountBalanceVec,
 }
 
 // Basic operations in the blockchain are encapsulated in the implementation
@@ -49,10 +57,12 @@ impl Blockchain {
         // add the genesis block to the synced vec of blocks
         let blocks = vec![genesis_block];
         let synced_blocks = Arc::new(Mutex::new(blocks));
+        let synced_account_balances = SyncedAccountBalanceVec::default();
 
         Blockchain {
             difficulty,
             blocks: synced_blocks,
+            account_balances: synced_account_balances,
         }
     }
 
@@ -117,7 +127,8 @@ impl Blockchain {
             return Err(BlockchainError::InvalidDifficulty.into());
         }
 
-        self.validate_coinbase(&block)?;
+        // update the account balances by processing the block transactions
+        self.update_account_balances(&block.transactions)?;
 
         // append the block to the end
         blocks.push(block);
@@ -125,17 +136,66 @@ impl Blockchain {
         Ok(())
     }
 
-    fn validate_coinbase(&self, block: &Block) -> Result<()> {
-        let coinbase_err = Err(BlockchainError::InvalidCoinbaseTransaction.into());
+    fn update_account_balances(&self, transactions: &[Transaction]) -> Result<()> {
+        let mut account_balances = self.account_balances.lock().unwrap();
+        // note that if any transaction (including coinbase) is invalid, an error will be returned before updating the balances
+        let new_account_balances =
+            Blockchain::calculate_new_account_balances(&account_balances, transactions)?;
+        *account_balances = new_account_balances;
 
-        let coinbase = match block.transactions.first() {
+        Ok(())
+    }
+
+    fn calculate_new_account_balances(
+        account_balances: &AccountBalanceMap,
+        transactions: &[Transaction],
+    ) -> Result<AccountBalanceMap> {
+        // we work on a copy of the account balances
+        let mut new_account_balances = account_balances.clone();
+        let mut iter = transactions.iter();
+
+        // the first transaction is always the coinbase transaction
+        // in which the miner receives the mining rewards
+        Blockchain::process_coinbase(&mut new_account_balances, iter.next())?;
+
+        // the rest of the transactions are regular transfers between accounts
+        Blockchain::process_transfers(&mut new_account_balances, iter)?;
+
+        Ok(new_account_balances)
+    }
+
+    fn process_coinbase(
+        account_balances: &mut AccountBalanceMap,
+        coinbase: Option<&Transaction>,
+    ) -> Result<()> {
+        // The coinbase transaction is required in a valid block
+        let coinbase = match coinbase {
             Some(transaction) => transaction,
-            None => return coinbase_err,
+            None => return Err(BlockchainError::CoinbaseTransactionNotFound.into()),
         };
 
-        // In coinbase transactions, we only care about the amount
-        if coinbase.amount != BLOCK_SUBSIDY {
-            return coinbase_err;
+        // In coinbase transactions, we only need to check that the amount is valid,
+        // because whoever provides a valid proof-of-work block can receive the new coins
+        let is_valid_amount = coinbase.amount == BLOCK_SUBSIDY;
+        if !is_valid_amount {
+            return Err(BlockchainError::InvalidCoinbaseAmount.into());
+        }
+
+        // The amount is valid so we add the new coins to the miner's address
+        account_balances.add_amount(&coinbase.recipient, coinbase.amount);
+
+        Ok(())
+    }
+
+    fn process_transfers(
+        new_account_balances: &mut AccountBalanceMap,
+        transaction_iter: Iter<Transaction>,
+    ) -> Result<()> {
+        // each transaction is validated using the updated account balances from previous transactions
+        // that means that we allow multiple transacions from the same address in the same block
+        // as long as they are consistent
+        for tx in transaction_iter {
+            new_account_balances.transfer(&tx.sender, &tx.recipient, tx.amount)?
         }
 
         Ok(())
@@ -262,7 +322,7 @@ mod tests {
 
         // try adding the invalid block, it should return an error
         let result = blockchain.add_block(block.clone());
-        assert_err(result, BlockchainError::InvalidCoinbaseTransaction);
+        assert_err(result, BlockchainError::CoinbaseTransactionNotFound);
     }
 
     #[test]
@@ -280,7 +340,7 @@ mod tests {
 
         // try adding the invalid block, it should return an error
         let result = blockchain.add_block(block.clone());
-        assert_err(result, BlockchainError::InvalidCoinbaseTransaction);
+        assert_err(result, BlockchainError::InvalidCoinbaseAmount);
     }
 
     fn assert_err(result: Result<(), anyhow::Error>, error_type: BlockchainError) {

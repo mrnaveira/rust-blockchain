@@ -2,7 +2,9 @@ mod common;
 
 use serial_test::serial;
 
-use crate::common::{Api, Block, BlockHash, ServerBuilder, Transaction, ALICE, BLOCK_SUBSIDY, BOB};
+use crate::common::{
+    Api, Block, BlockHash, ServerBuilder, Transaction, ALICE, BLOCK_SUBSIDY, BOB, MINER_ADDRESS,
+};
 
 #[test]
 #[serial]
@@ -32,10 +34,12 @@ fn test_should_let_add_transactions() {
     let genesis_block = node.get_last_block();
 
     // create and add a new transaction to the pool
+    // the sender must the mining address,
+    // as it should have funds from the coinbase reward of the genesis block
     let transaction = Transaction {
-        sender: ALICE.to_string(),
+        sender: MINER_ADDRESS.to_string(),
         recipient: BOB.to_string(),
-        amount: 100 as u64,
+        amount: 10 as u64,
     };
     let res = node.add_transaction(&transaction);
     assert_eq!(res.status().as_u16(), 200);

@@ -120,8 +120,9 @@ Also, all threads share data, specifically the **block list** and the **transact
 - [x] Basic miner that adds transactions every N seconds
 - [x] Basic PoW implementation: nonce, miner calculates hashes and fixed difficulty
 - [x] Mining peers communicate new blocks over the network
-- [ ] Block rewards: subsidy and transaction fees
-- [ ] Validate transaction balances
+- [x] Block subsidy
+- [x] Validate transaction balances
+- [ ] Transaction fees
 - [ ] Dynamic difficulty (aiming for constant time intervals between blocks)
 - [ ] Halving
 - [ ] Blockchain disk storage

@@ -89,6 +89,13 @@ pub mod test_util {
         )
         .unwrap()
     }
+
+    pub fn carol() -> Address {
+        Address::try_from(
+            "b4f8293fb123ef3ff9ad49e923f4afc732774ee2bfdc3b278a359b54473c2277".to_string(),
+        )
+        .unwrap()
+    }
 }
 
 #[cfg(test)]

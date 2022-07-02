@@ -204,7 +204,11 @@ impl Blockchain {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::{Address, Transaction};
+    use crate::model::{
+        account_balance_map::AccountBalanceMapError,
+        test_util::{alice, bob, carol},
+        Address, Transaction,
+    };
 
     use super::*;
 
@@ -236,11 +240,21 @@ mod tests {
         // create a valid block
         let previous_hash = blockchain.get_last_block().hash;
         let coinbase = Transaction {
-            sender: Address::default(),
-            recipient: Address::default(),
+            sender: Address::default(), // sender is ignored in coinbases
+            recipient: bob(),
             amount: BLOCK_SUBSIDY,
         };
-        let block = Block::new(1, 0, previous_hash, vec![coinbase]);
+        let tx1 = Transaction {
+            sender: bob(),
+            recipient: alice(),
+            amount: 5,
+        };
+        let tx2 = Transaction {
+            sender: alice(),
+            recipient: bob(),
+            amount: 5,
+        };
+        let block = Block::new(1, 0, previous_hash, vec![coinbase, tx1, tx2]);
 
         // add it to the blockchain and check it was really added
         let result = blockchain.add_block(block.clone());
@@ -343,8 +357,68 @@ mod tests {
         assert_err(result, BlockchainError::InvalidCoinbaseAmount);
     }
 
+    #[test]
+    fn should_not_let_add_transaction_with_insufficient_funds() {
+        let blockchain = Blockchain::new(NO_DIFFICULTY);
+
+        // create an invalid block
+        let previous_hash = blockchain.get_last_block().hash;
+        // the coinbase is valid
+        let coinbase = Transaction {
+            sender: Address::default(), // sender is ignored in coinbases
+            recipient: bob(),
+            amount: BLOCK_SUBSIDY,
+        };
+        // but the following transaction has an invalid amount
+        let invalid_transaction = Transaction {
+            sender: bob(),
+            recipient: alice(),
+            // the amount is greated than what bob has
+            amount: BLOCK_SUBSIDY + 1,
+        };
+        let block = Block::new(1, 0, previous_hash, vec![coinbase, invalid_transaction]);
+
+        // try adding the invalid block, it should return an error
+        let result = blockchain.add_block(block.clone());
+        assert_balance_err(result, AccountBalanceMapError::InsufficientFunds);
+    }
+
+    #[test]
+    fn should_not_let_add_transaction_with_non_existent_sender() {
+        let blockchain = Blockchain::new(NO_DIFFICULTY);
+
+        // create a valid block
+        let previous_hash = blockchain.get_last_block().hash;
+        // the coinbase is valid
+        let coinbase = Transaction {
+            sender: Address::default(), // sender is ignored in coinbases
+            recipient: bob(),
+            amount: BLOCK_SUBSIDY,
+        };
+        // but the sender does not exist
+        let invalid_transaction = Transaction {
+            // the sender address do not have any funds from previous transactions
+            sender: carol(),
+            recipient: bob(),
+            amount: 1,
+        };
+        let block = Block::new(1, 0, previous_hash, vec![coinbase, invalid_transaction]);
+
+        // try adding the invalid block, it should return an error
+        let result = blockchain.add_block(block.clone());
+        assert_balance_err(result, AccountBalanceMapError::SenderAccountDoesNotExist);
+    }
+
     fn assert_err(result: Result<(), anyhow::Error>, error_type: BlockchainError) {
         let err = result.unwrap_err().downcast::<BlockchainError>().unwrap();
+        assert_eq!(err, error_type);
+    }
+
+    fn assert_balance_err(result: Result<(), anyhow::Error>, error_type: AccountBalanceMapError) {
+        let err = result
+            .unwrap_err()
+            .downcast::<AccountBalanceMapError>()
+            .unwrap();
         assert_eq!(err, error_type);
     }
 }

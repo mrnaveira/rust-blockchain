@@ -7,7 +7,7 @@
 # https://github.com/mozilla/grcov#example-how-to-generate-source-based-coverage-for-a-rust-project
 
 cargo clean
-rm -rf ./coverage ./target *.prof*
+rm -rf ./coverage ./target *.prof* */*.prof*
 
 # Export the flags needed to instrument the program to collect code coverage.
 export RUSTFLAGS="-C instrument-coverage"
@@ -25,4 +25,4 @@ cargo test
 # Generate a HTML report in the coverage/ directory.
 grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing --ignore "*/tests/*" -o ./coverage/
 
-rm *.prof*
+rm *.prof* */*.prof*

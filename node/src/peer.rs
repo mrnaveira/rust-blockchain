@@ -1,16 +1,19 @@
-use crate::util::{
-    execution::{sleep_millis, Runnable},
-    Context,
+use crate::{
+    node::Node,
+    util::{
+        execution::{sleep_millis, Runnable},
+        Config,
+    },
 };
 use anyhow::Result;
 use isahc::{ReadResponseExt, Request};
-use spec::{Block, Blockchain};
+use spec::Block;
 use std::panic;
 
 pub struct Peer {
     peer_addresses: Vec<String>,
-    blockchain: Blockchain,
     peer_sync_ms: u64,
+    node: Node,
 }
 
 impl Runnable for Peer {
@@ -20,11 +23,11 @@ impl Runnable for Peer {
 }
 
 impl Peer {
-    pub fn new(context: &Context) -> Peer {
+    pub fn new(config: &Config, node: &Node) -> Peer {
         Peer {
-            peer_addresses: context.config.peers.clone(),
-            blockchain: context.blockchain.clone(),
-            peer_sync_ms: context.config.peer_sync_ms,
+            peer_addresses: config.peers.clone(),
+            peer_sync_ms: config.peer_sync_ms,
+            node: node.clone(),
         }
     }
 
@@ -50,7 +53,7 @@ impl Peer {
     }
 
     fn get_last_block_index(&self) -> usize {
-        self.blockchain.get_last_block().index as usize
+        self.node.get_last_block().index as usize
     }
 
     // Retrieve new blocks from all peers and add them to the blockchain
@@ -75,7 +78,7 @@ impl Peer {
     // Try to add a bunch of new blocks to our blockchain
     fn add_new_blocks(&self, new_blocks: &[Block]) {
         for block in new_blocks.iter() {
-            let result = self.blockchain.add_block(block.clone());
+            let result = self.node.add_block(block.clone());
 
             // if a block is invalid, no point in trying to add the next ones
             if result.is_err() {
@@ -90,7 +93,7 @@ impl Peer {
     // Retrieve only the new blocks from a peer
     fn get_new_blocks_from_peer(&self, address: &str) -> Vec<Block> {
         // we need to know the last block index in our blockchain
-        let our_last_index = self.blockchain.get_last_block().index as usize;
+        let our_last_index = self.node.get_last_block().index as usize;
 
         // we retrieve all the blocks from the peer
         let peer_blocks = self.get_blocks_from_peer(address);
@@ -146,7 +149,7 @@ impl Peer {
     fn get_new_blocks_since(&self, start_index: usize) -> Vec<Block> {
         let last_block_index = self.get_last_block_index();
         let new_blocks_range = start_index + 1..=last_block_index;
-        self.blockchain
+        self.node
             .get_all_blocks()
             .get(new_blocks_range)
             .unwrap()

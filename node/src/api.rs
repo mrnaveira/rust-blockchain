@@ -1,53 +1,39 @@
-use crate::{
-    transaction_pool::TransactionPool,
-    util::{execution::Runnable, Context},
-};
+use crate::{node::Node, util::execution::Runnable};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use anyhow::Result;
-use spec::{Block, Blockchain, Transaction};
-
-struct ApiState {
-    blockchain: Blockchain,
-    pool: TransactionPool,
-}
+use spec::{Block, Transaction};
 
 pub struct Api {
     port: u16,
-    blockchain: Blockchain,
-    pool: TransactionPool,
+    node: Node,
 }
 
 impl Runnable for Api {
     fn run(&self) -> Result<()> {
-        let api_blockchain = self.blockchain.clone();
-        let api_pool = self.pool.clone();
-
-        start_server(self.port, api_blockchain, api_pool)
+        start_server(self.port, &self.node)
     }
 }
 
 impl Api {
-    pub fn new(context: &Context) -> Api {
+    pub fn new(port: u16, node: &Node) -> Api {
         Api {
-            port: context.config.port,
-            blockchain: context.blockchain.clone(),
-            pool: context.pool.clone(),
+            port,
+            node: node.clone(),
         }
     }
 }
 
 #[actix_web::main]
-async fn start_server(port: u16, blockchain: Blockchain, pool: TransactionPool) -> Result<()> {
+async fn start_server(port: u16, node: &Node) -> Result<()> {
     let url = format!("localhost:{}", port);
-    // These variables are really "Arc" pointers to a shared memory value
-    // So when we clone them, we are only cloning the pointers and not the actual data
-    let api_state = web::Data::new(ApiState { blockchain, pool });
+    let state = web::Data::new(node.clone());
 
     HttpServer::new(move || {
         App::new()
-            .app_data(api_state.clone())
+            .app_data(state.clone())
             .route("/blocks", web::get().to(get_blocks))
             .route("/blocks", web::post().to(add_block))
+            .route("/transactions", web::get().to(get_transactions))
             .route("/transactions", web::post().to(add_transaction))
     })
     .bind(url)
@@ -59,24 +45,16 @@ async fn start_server(port: u16, blockchain: Blockchain, pool: TransactionPool) 
 }
 
 // Returns a list of all the blocks in the blockchain
-async fn get_blocks(state: web::Data<ApiState>) -> impl Responder {
-    let blockchain = &state.blockchain;
-    let blocks = blockchain.get_all_blocks();
+async fn get_blocks(node: web::Data<Node>) -> impl Responder {
+    let blocks = node.get_all_blocks();
 
     HttpResponse::Ok().json(&blocks)
 }
 
 // Adds a new block to the blockchain
-async fn add_block(state: web::Data<ApiState>, block_json: web::Json<Block>) -> HttpResponse {
-    let mut block = block_json.into_inner();
-
-    // The hash of the block is mandatory and the blockchain checks if it's correct
-    // That's a bit unconvenient for manual use of the API
-    // So we ignore the comming hash and recalculate it again before adding to the blockchain
-    block.hash = block.calculate_hash();
-
-    let blockchain = &state.blockchain;
-    let result = blockchain.add_block(block.clone());
+async fn add_block(node: web::Data<Node>, block_json: web::Json<Block>) -> HttpResponse {
+    let block = block_json.into_inner();
+    let result = node.add_block(block.clone());
 
     match result {
         Ok(_) => {
@@ -87,14 +65,19 @@ async fn add_block(state: web::Data<ApiState>, block_json: web::Json<Block>) -> 
     }
 }
 
+// Returns a list of all the transactions that are not yet included into a block
+async fn get_transactions(node: web::Data<Node>) -> impl Responder {
+    let transactions = node.get_transactions();
+    HttpResponse::Ok().json(&transactions)
+}
+
 // Adds a new transaction to the pool, to be included on the next block
 async fn add_transaction(
-    state: web::Data<ApiState>,
+    node: web::Data<Node>,
     transaction_json: web::Json<Transaction>,
 ) -> impl Responder {
     let transaction = transaction_json.into_inner();
-    let pool = &state.pool;
-    pool.add_transaction(transaction);
+    node.add_transaction(transaction);
 
     HttpResponse::Ok()
 }

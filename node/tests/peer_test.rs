@@ -3,6 +3,7 @@ mod common;
 use crate::common::{Api, ServerBuilder};
 use serial_test::serial;
 
+#[ignore]
 #[test]
 #[serial]
 #[cfg(unix)]
@@ -56,6 +57,7 @@ fn test_should_not_receive_new_invalid_blocks() {
     assert_eq!(follower_node.get_blocks().len(), 1);
 }
 
+#[ignore]
 #[test]
 #[serial]
 #[cfg(unix)]
@@ -81,6 +83,7 @@ fn test_should_ignore_unavailable_peers() {
     assert_eq!(follower_node.get_blocks().len(), 2);
 }
 
+#[ignore]
 #[test]
 #[serial]
 #[cfg(unix)]

@@ -6,6 +6,7 @@ use crate::common::{
     Api, Block, BlockHash, ServerBuilder, Transaction, ALICE, BLOCK_SUBSIDY, BOB, MINER_ADDRESS,
 };
 
+#[ignore]
 #[test]
 #[serial]
 #[cfg(unix)]
@@ -26,6 +27,7 @@ fn test_should_get_a_valid_genesis_block() {
     assert!(genesis_block.transactions.is_empty());
 }
 
+#[ignore]
 #[test]
 #[serial]
 #[cfg(unix)]
@@ -62,6 +64,7 @@ fn test_should_let_add_transactions() {
     assert_eq!(*mined_transaction, transaction);
 }
 
+#[ignore]
 #[test]
 #[serial]
 #[cfg(unix)]

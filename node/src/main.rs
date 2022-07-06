@@ -2,17 +2,17 @@
 extern crate log;
 
 mod api;
-mod miner;
+mod node;
 mod peer;
 mod transaction_pool;
 mod util;
 
 use api::Api;
-use miner::Miner;
+use node::Node;
 use peer::Peer;
 use spec::Blockchain;
 use transaction_pool::TransactionPool;
-use util::{execution, initialize_logger, termination, Config, Context};
+use util::{execution, initialize_logger, termination, Config};
 
 fn main() {
     initialize_logger();
@@ -21,21 +21,16 @@ fn main() {
     // quit the program when the user inputs Ctrl-C
     termination::set_ctrlc_handler();
 
-    // initialize shared data values
+    // read the configuration file
     let config = Config::read();
-    let difficulty = config.difficulty;
-    let context = Context {
-        config,
-        blockchain: Blockchain::new(difficulty),
-        pool: TransactionPool::new(),
-    };
 
-    // initialize the processes
-    let miner = Miner::new(&context);
-    let api = Api::new(&context);
-    let peer = Peer::new(&context);
+    // initialize the application state
+    let blockchain = Blockchain::new(config.difficulty);
+    let pool = TransactionPool::new();
+    let node = Node::new(blockchain, pool);
 
-    // miner, api and peer system run in separate threads
-    // because mining is very cpu intensive
-    execution::run_in_parallel(vec![&miner, &api, &peer]);
+    // run the processes in parallel
+    let api = Api::new(config.port, &node);
+    let peer = Peer::new(&config, &node);
+    execution::run_in_parallel(vec![&api, &peer]);
 }

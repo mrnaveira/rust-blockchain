@@ -1,17 +1,24 @@
 use spec::{Block, Blockchain, Transaction};
 
-use crate::transaction_pool::TransactionPool;
+use crate::{mempool::Mempool, util::Config};
 use anyhow::Result;
 
 #[derive(Debug, Clone)]
-pub struct Node {
+pub struct Database {
     blockchain: Blockchain,
-    pool: TransactionPool,
+    mempool: Mempool,
 }
 
-impl Node {
-    pub fn new(blockchain: Blockchain, pool: TransactionPool) -> Self {
-        Self { blockchain, pool }
+// Only in-memory storage for now
+impl Database {
+    pub fn new(config: &Config) -> Self {
+        let blockchain = Blockchain::new(config.difficulty);
+        let mempool = Mempool::default();
+
+        Self {
+            blockchain,
+            mempool,
+        }
     }
 
     pub fn get_all_blocks(&self) -> Vec<Block> {
@@ -26,16 +33,16 @@ impl Node {
         self.blockchain.add_block(block.clone())?;
 
         // we must remove all submitted transactions present in the new block
-        self.pool.remove_transactions(block.transactions);
+        self.mempool.remove_transactions(block.transactions);
 
         Ok(())
     }
 
     pub fn get_transactions(&self) -> Vec<Transaction> {
-        self.pool.get_transactions()
+        self.mempool.get_transactions()
     }
 
     pub fn add_transaction(&self, transaction: Transaction) {
-        self.pool.add_transaction(transaction);
+        self.mempool.add_transaction(transaction);
     }
 }

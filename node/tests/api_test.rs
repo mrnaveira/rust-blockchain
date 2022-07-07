@@ -1,10 +1,48 @@
 mod common;
 
+use std::{thread, time::Duration};
+
+use isahc::ReadResponseExt;
+use node::{server::Server, util::Config};
 use serial_test::serial;
+use spec::Address;
 
 use crate::common::{
     Api, Block, BlockHash, ServerBuilder, Transaction, ALICE, BLOCK_SUBSIDY, BOB, MINER_ADDRESS,
 };
+
+#[test]
+#[serial]
+fn test_lib_interface() {
+    let config = Config {
+        port: 8000,
+        peers: vec![],
+        peer_sync_ms: 100,
+        max_blocks: 0,
+        max_nonce: 0,
+        difficulty: 0,
+        tx_waiting_ms: 100,
+        miner_address: Address::default(),
+    };
+    let server = Server::new(config);
+
+    let _handle = thread::spawn(move || {
+        server.start();
+    });
+
+    thread::sleep(Duration::from_millis(1000));
+
+    // list the blocks by querying the REST API
+    let uri = format!("http://localhost:8000/blocks");
+    let mut response = isahc::get(uri).unwrap();
+
+    // check that the response is sucessful
+    assert_eq!(response.status().as_u16(), 200);
+
+    // parse the list of blocks from the response body
+    let raw_body = response.text().unwrap();
+    println!("{}", raw_body);
+}
 
 #[ignore]
 #[test]

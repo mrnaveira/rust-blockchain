@@ -11,7 +11,7 @@ use super::Transaction;
 pub type BlockHash = U256;
 
 // Represents a block in a blockchain
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Block {
     pub index: u64,
     pub timestamp: i64,

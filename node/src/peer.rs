@@ -59,18 +59,10 @@ impl Peer {
     // Retrieve new blocks from all peers and add them to the blockchain
     fn try_receive_new_blocks(&self) {
         for address in self.peer_addresses.iter() {
-            // we don't want to panic if one peer is down or not working properly
-            let result = panic::catch_unwind(|| {
-                let new_blocks = self.get_new_blocks_from_peer(address);
+            let new_blocks = self.get_new_blocks_from_peer(address);
 
-                if !new_blocks.is_empty() {
-                    self.add_new_blocks(&new_blocks);
-                }
-            });
-
-            // if a peer is not working, we simply log it and ignore the error
-            if result.is_err() {
-                error!("Could not sync blocks from peer {}", address);
+            if !new_blocks.is_empty() {
+                self.add_new_blocks(&new_blocks);
             }
         }
     }
@@ -93,35 +85,45 @@ impl Peer {
     // Retrieve only the new blocks from a peer
     fn get_new_blocks_from_peer(&self, address: &str) -> Vec<Block> {
         // we need to know the last block index in our blockchain
+        // FIXME: we should use a u64 range to avoid overflows
         let our_last_index = self.database.get_last_block().index as usize;
 
         // we retrieve all the blocks from the peer
         let peer_blocks = self.get_blocks_from_peer(address);
-        let peer_last_index = peer_blocks.last().unwrap().index as usize;
-
-        // Check if the peer has new blocks
-        if peer_last_index <= our_last_index {
-            return Vec::<Block>::new();
-        }
+        let peer_last_index = match peer_blocks.last() {
+            Some(block) => block.index as usize,
+            None => 0,
+        };
 
         // The peer do have new blocks, and we return ONLY the new ones
         let first_new = our_last_index + 1;
         let last_new = peer_last_index;
         let new_blocks_range = first_new..=last_new;
-        peer_blocks.get(new_blocks_range).unwrap().to_vec()
+        peer_blocks
+            .get(new_blocks_range)
+            .unwrap_or_default()
+            .to_vec()
     }
 
     // Retrieve ALL blocks from a peer
+    // if the peer is not responsive, we ignore it and return and empty vector
     fn get_blocks_from_peer(&self, address: &str) -> Vec<Block> {
         let uri = format!("{}/blocks", address);
-        let mut response = isahc::get(uri).unwrap();
+        let default_value = vec![];
+
+        let mut response = match isahc::get(uri) {
+            Ok(value) => value,
+            Err(_) => return default_value,
+        };
 
         // check that the response is sucessful
-        assert_eq!(response.status().as_u16(), 200);
+        if response.status().as_u16() != 200 {
+            return default_value;
+        }
 
         // parse and return the list of blocks from the response body
-        let raw_body = response.text().unwrap();
-        serde_json::from_str(&raw_body).unwrap()
+        let raw_body = response.text().unwrap_or_default();
+        serde_json::from_str(&raw_body).unwrap_or_default()
     }
 
     // Try to broadcast all new blocks to peers since last time we broadcasted
@@ -166,6 +168,7 @@ impl Peer {
             .body(body)
             .unwrap();
 
-        isahc::send(request).unwrap();
+        // Ignore unresponsive peers
+        let _response = isahc::send(request);
     }
 }

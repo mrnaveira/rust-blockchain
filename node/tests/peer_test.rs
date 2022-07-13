@@ -1,18 +1,24 @@
-mod common;
-
-use crate::common::{Api, ServerBuilder};
+mod utils;
+use rusty_fork::rusty_fork_test;
 use serial_test::serial;
 
-#[ignore]
+use crate::utils::TestServerBuilder;
+
+use crate::utils::RestApi;
+
+// We run each test in a separated process to force resource liberation (i.e. network ports)
+rusty_fork_test! {
+
 #[test]
 #[serial]
-#[cfg(unix)]
 fn test_should_receive_new_valid_blocks() {
     // We will use this node to be the most updated one
-    let leader_node = ServerBuilder::new().port(8000).start();
+    let leader_node = TestServerBuilder::new().port(8000).build();
+    leader_node.start();
 
     // This new node will keep asking for new blocks to the leader node
-    let mut follower_node = ServerBuilder::new().port(8001).peer(8000).start();
+    let follower_node = TestServerBuilder::new().port(8001).peer(8000).build();
+    follower_node.start();
 
     // At the beggining, both nodes will only have the genesis blocks
     assert_eq!(leader_node.get_blocks().len(), 1);
@@ -34,18 +40,19 @@ fn test_should_receive_new_valid_blocks() {
 
 #[test]
 #[serial]
-#[cfg(unix)]
 fn test_should_not_receive_new_invalid_blocks() {
     // We will use this node to be the most updated one
-    let leader_node = ServerBuilder::new().port(8000).start();
+    let leader_node = TestServerBuilder::new().port(8000).build();
+    leader_node.start();
 
     // This new node will keep asking for new blocks to the leader node
     // But we will require a much higher difficulty, so it should not accept blocks from the leader
-    let mut follower_node = ServerBuilder::new()
+    let follower_node = TestServerBuilder::new()
         .difficulty(20)
         .port(8001)
         .peer(8000)
-        .start();
+        .build();
+    follower_node.start();
 
     // we create a new valid block in the leader node
     leader_node.add_valid_block();
@@ -57,21 +64,21 @@ fn test_should_not_receive_new_invalid_blocks() {
     assert_eq!(follower_node.get_blocks().len(), 1);
 }
 
-#[ignore]
 #[test]
 #[serial]
-#[cfg(unix)]
 fn test_should_ignore_unavailable_peers() {
     // We will use this node to be the most updated one
-    let leader_node = ServerBuilder::new().port(8000).start();
+    let leader_node = TestServerBuilder::new().port(8000).build();
+    leader_node.start();
 
     // This new node will keep asking for new blocks to the leader node
     // but also to a node that does not exist...
-    let mut follower_node = ServerBuilder::new()
+    let follower_node = TestServerBuilder::new()
         .port(8001)
         .peer(9000)
         .peer(8000)
-        .start();
+        .build();
+    follower_node.start();
 
     // we create a new valid block in the leader node
     leader_node.add_valid_block();
@@ -83,16 +90,19 @@ fn test_should_ignore_unavailable_peers() {
     assert_eq!(follower_node.get_blocks().len(), 2);
 }
 
-#[ignore]
 #[test]
 #[serial]
-#[cfg(unix)]
 fn test_should_send_new_blocks() {
     // This node will always be behind the leader node
-    let mut follower_node = ServerBuilder::new().port(8000).start();
+    let leader_node = TestServerBuilder::new().port(8000).build();
+    leader_node.start();
 
     // We will use this node to be the most updated one
-    let leader_node = ServerBuilder::new().port(8001).peer(8000).start();
+    let follower_node = TestServerBuilder::new()
+        .port(8001)
+        .peer(8000)
+        .build();
+    follower_node.start();
 
     // At the beggining, both nodes will only have the genesis blocks
     assert_eq!(leader_node.get_blocks().len(), 1);
@@ -110,4 +120,5 @@ fn test_should_send_new_blocks() {
     let last_leader_block = leader_node.get_last_block();
     let last_follower_block = leader_node.get_last_block();
     assert_eq!(last_follower_block, last_leader_block);
+}
 }

@@ -6,8 +6,8 @@ use crate::{
 };
 
 pub struct Server {
-    config: Config,
-    database: Database,
+    pub config: Config,
+    pub database: Database,
 }
 
 impl Server {

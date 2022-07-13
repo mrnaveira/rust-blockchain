@@ -1,55 +1,26 @@
-mod common;
-
-use std::{thread, time::Duration};
-
-use isahc::ReadResponseExt;
-use node::{server::Server, util::Config};
+mod utils;
+use rusty_fork::rusty_fork_test;
 use serial_test::serial;
-use spec::Address;
 
-use crate::common::{
-    Api, Block, BlockHash, ServerBuilder, Transaction, ALICE, BLOCK_SUBSIDY, BOB, MINER_ADDRESS,
-};
+use crate::utils::alice;
+use crate::utils::miner_address;
+use crate::utils::Miner;
+use spec::BlockHash;
+use spec::Transaction;
+
+use crate::utils::RestApi;
+use crate::utils::TestServerBuilder;
+
+use spec::Block;
+
+// We run each test in a separated process to force resource liberation (i.e. network ports)
+rusty_fork_test! {
 
 #[test]
 #[serial]
-fn test_lib_interface() {
-    let config = Config {
-        port: 8000,
-        peers: vec![],
-        peer_sync_ms: 100,
-        max_blocks: 0,
-        max_nonce: 0,
-        difficulty: 0,
-        tx_waiting_ms: 100,
-        miner_address: Address::default(),
-    };
-    let server = Server::new(config);
-
-    let _handle = thread::spawn(move || {
-        server.start();
-    });
-
-    thread::sleep(Duration::from_millis(1000));
-
-    // list the blocks by querying the REST API
-    let uri = format!("http://localhost:8000/blocks");
-    let mut response = isahc::get(uri).unwrap();
-
-    // check that the response is sucessful
-    assert_eq!(response.status().as_u16(), 200);
-
-    // parse the list of blocks from the response body
-    let raw_body = response.text().unwrap();
-    println!("{}", raw_body);
-}
-
-#[ignore]
-#[test]
-#[serial]
-#[cfg(unix)]
 fn test_should_get_a_valid_genesis_block() {
-    let node = ServerBuilder::new().start();
+    let node = TestServerBuilder::new().build();
+    node.start();
 
     // list the blocks by querying the REST API
     let blocks = node.get_blocks();
@@ -65,27 +36,28 @@ fn test_should_get_a_valid_genesis_block() {
     assert!(genesis_block.transactions.is_empty());
 }
 
-#[ignore]
 #[test]
 #[serial]
-#[cfg(unix)]
 fn test_should_let_add_transactions() {
-    let mut node = ServerBuilder::new().start();
+    let node = TestServerBuilder::new().build();
+    node.start();
+
     let genesis_block = node.get_last_block();
 
     // create and add a new transaction to the pool
     // the sender must the mining address,
     // as it should have funds from the coinbase reward of the genesis block
     let transaction = Transaction {
-        sender: MINER_ADDRESS.to_string(),
-        recipient: BOB.to_string(),
+        sender: miner_address(),
+        recipient: alice(),
         amount: 10 as u64,
     };
     let res = node.add_transaction(&transaction);
     assert_eq!(res.status().as_u16(), 200);
 
     // wait for the transaction to be mined
-    node.wait_for_mining();
+    let miner = Miner::new();
+    miner.mine_blocks(1);
 
     // check that a new bock was added...
     let blocks = node.get_blocks();
@@ -102,51 +74,35 @@ fn test_should_let_add_transactions() {
     assert_eq!(*mined_transaction, transaction);
 }
 
-#[ignore]
 #[test]
 #[serial]
-#[cfg(unix)]
 fn test_should_let_add_valid_block() {
-    let node = ServerBuilder::new().start();
+    let node = TestServerBuilder::new().build();
+    node.start();
+
     let genesis_block = node.get_last_block();
     let coinbase = Transaction {
-        sender: ALICE.to_string(),
-        recipient: ALICE.to_string(),
-        amount: BLOCK_SUBSIDY,
+        sender: miner_address(),
+        recipient: alice(),
+        amount: spec::BLOCK_SUBSIDY,
     };
 
-    let valid_block = Block {
-        // there is the genesis block already, so the next index is 1
-        index: 1,
-        timestamp: 0,
-        nonce: 0,
-        // the previous hash is checked
-        previous_hash: genesis_block.hash,
-        // the api automatically recalculates the hash...
-        // ...so no need to add a valid one here
-        hash: BlockHash::default(),
-        // must include the coinbase transaction
-        transactions: vec![coinbase],
-    };
+    let valid_block = Block::new(1, 0, genesis_block.hash, vec![coinbase]);
+
     let res = node.add_block(&valid_block);
     assert_eq!(res.status().as_u16(), 200);
 }
 
 #[test]
 #[serial]
-#[cfg(unix)]
 fn test_should_not_let_add_invalid_block() {
-    let node = ServerBuilder::new().start();
+    let node = TestServerBuilder::new().build();
+    node.start();
 
-    // let's try to add a new INVALID block, should return an error
-    let invalid_block = Block {
-        index: 0, // not valid index, the genesis block already has index 0
-        timestamp: 0,
-        nonce: 0,
-        previous_hash: BlockHash::default(), // also not valid
-        hash: BlockHash::default(),
-        transactions: [].to_vec(),
-    };
+    // the previous hash is invalid, so the node should return an error when adding the block
+    let invalid_block = Block::new(1, 0, BlockHash::default(), vec![]);
+
     let res = node.add_block(&invalid_block);
     assert_eq!(res.status().as_u16(), 400);
+}
 }

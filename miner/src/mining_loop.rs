@@ -74,7 +74,7 @@ fn should_keep_mining(blocks_mined: u64, args: &MinerArgs) -> bool {
         return true;
     }
 
-    blocks_mined == args.max_blocks
+    blocks_mined < args.max_blocks
 }
 
 // Suspend the execution of the thread by a particular amount of milliseconds

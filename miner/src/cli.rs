@@ -1,7 +1,7 @@
 use clap::Parser;
 use spec::Address;
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
 pub struct MinerArgs {
     /// Account address that will receive the mining rewards

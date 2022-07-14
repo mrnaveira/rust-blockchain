@@ -23,6 +23,9 @@ cargo build
 cargo test
 
 # Generate a HTML report in the coverage/ directory.
-grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing --ignore "*/tests/*" -o ./coverage/
+grcov . --binary-path ./target/debug/ -s . -t html --branch -o ./coverage/ --ignore-not-existing \
+    --ignore "*/main.rs" \ # the "main.rs" is kept minimal, everything relevant is exported (and tested) on "lib.rs"
+    --ignore "*/cli.rs" \ # hard/irrelevant to test as it's only used on "main.rs"
+    --ignore "*/tests/*" # the coverage on integration test code itself does not make sense
 
 rm *.prof* */*.prof*

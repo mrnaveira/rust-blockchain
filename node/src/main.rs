@@ -8,10 +8,10 @@ mod peer;
 mod server;
 mod util;
 
-use crate::{
-    server::Server,
-    util::{initialize_logger, termination, Config},
-};
+use env_logger::{Builder, Target};
+use log::LevelFilter;
+
+use crate::{server::Server, util::Config};
 
 fn main() {
     // set up the logging system
@@ -26,5 +26,19 @@ fn main() {
     server.start();
 
     // when user inputs Ctrl-C, terminate the program
-    termination::set_ctrlc_handler();
+    set_ctrlc_handler();
+}
+
+fn initialize_logger() {
+    let mut builder = Builder::from_default_env();
+    builder.target(Target::Stdout);
+    builder.filter(None, LevelFilter::Info);
+    builder.init();
+}
+
+pub fn set_ctrlc_handler() {
+    ctrlc::set_handler(move || {
+        std::process::exit(0);
+    })
+    .expect("Error setting Ctrl-C handler");
 }

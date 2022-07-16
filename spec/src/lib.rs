@@ -1,15 +1,13 @@
 mod account_balance_map;
-mod address;
-mod block;
 mod blockchain;
-mod transaction;
+mod types;
 
 // Explicitly controlling which individual identifiers we export
 // It also avoids verbose module imports from other files
-pub use address::Address;
-pub use block::{Block, BlockHash};
 pub use blockchain::{Blockchain, BlockchainError, BLOCK_SUBSIDY};
-pub use transaction::Transaction;
+pub use types::Address;
+pub use types::Transaction;
+pub use types::{Block, BlockHash};
 
 #[cfg(test)]
-pub use address::test_util;
+pub use types::test_util;

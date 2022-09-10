@@ -7,7 +7,7 @@ use crate::{
 };
 use anyhow::Result;
 use isahc::{ReadResponseExt, Request};
-use spec::Block;
+use spec::types::Block;
 use std::panic;
 
 pub struct Peer {

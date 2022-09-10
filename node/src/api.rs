@@ -1,7 +1,7 @@
 use crate::{database::Database, util::execution::Runnable};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use anyhow::Result;
-use spec::{Block, Transaction};
+use spec::types::{Block, Transaction};
 
 pub struct Api {
     port: u16,

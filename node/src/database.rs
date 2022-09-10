@@ -1,5 +1,3 @@
-use spec::{Block, Blockchain, Transaction};
-
 use crate::{mempool::Mempool, util::Config};
 use anyhow::Result;
 

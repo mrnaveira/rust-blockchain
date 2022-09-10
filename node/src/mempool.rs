@@ -1,4 +1,4 @@
-use spec::Transaction;
+use spec::types::Transaction;
 use std::sync::{Arc, Mutex};
 
 pub type TransactionVec = Vec<Transaction>;

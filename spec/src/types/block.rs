@@ -1,14 +1,10 @@
 use chrono::prelude::*;
-use crypto::digest::Digest;
-use crypto::sha2::Sha256;
-use ethereum_types::U256;
 use serde::{Deserialize, Serialize};
 
-use super::Transaction;
-
-// We encapsulate the paricular hash value implementation
-// to be able to easily change it in the future
-pub type BlockHash = U256;
+use super::{
+    hash::{ConsensusHash, ConsensusHashable},
+    Transaction,
+};
 
 // Represents a block in a blockchain
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -16,8 +12,8 @@ pub struct Block {
     pub index: u64,
     pub timestamp: i64,
     pub nonce: u64,
-    pub previous_hash: BlockHash,
-    pub hash: BlockHash,
+    pub previous_hash: ConsensusHash,
+    pub hash: ConsensusHash,
     pub transactions: Vec<Transaction>,
 }
 
@@ -26,7 +22,7 @@ impl Block {
     pub fn new(
         index: u64,
         nonce: u64,
-        previous_hash: BlockHash,
+        previous_hash: ConsensusHash,
         transactions: Vec<Transaction>,
     ) -> Block {
         let mut block = Block {
@@ -34,7 +30,7 @@ impl Block {
             timestamp: Utc::now().timestamp_millis(),
             nonce,
             previous_hash,
-            hash: BlockHash::default(),
+            hash: ConsensusHash::default(),
             transactions,
         };
         block.hash = block.calculate_hash();
@@ -43,19 +39,12 @@ impl Block {
     }
 
     // Calculate the hash value of the block
-    pub fn calculate_hash(&self) -> BlockHash {
+    pub fn calculate_hash(&self) -> ConsensusHash {
         // We cannot use the hash field to calculate the hash
+        // so we zeroed it out
         let mut hashable_data = self.clone();
-        hashable_data.hash = BlockHash::default();
-        let serialized = serde_json::to_string(&hashable_data).unwrap();
+        hashable_data.hash = ConsensusHash::default();
 
-        // Cacluate and return the SHA-256 hash value for the block
-        let mut byte_hash = <[u8; 32]>::default();
-        let mut hasher = Sha256::new();
-
-        hasher.input_str(&serialized);
-        hasher.result(&mut byte_hash);
-
-        U256::from(byte_hash)
+        hashable_data.consensus_hash()
     }
 }

@@ -3,7 +3,6 @@ extern crate log;
 
 mod api;
 mod database;
-mod mempool;
 mod peer;
 mod server;
 mod util;

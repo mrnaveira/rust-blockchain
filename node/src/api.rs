@@ -1,7 +1,10 @@
 use crate::{database::Database, util::execution::Runnable};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use anyhow::Result;
-use spec::types::{Block, Transaction};
+use spec::{
+    types::{Block, Transaction},
+    Database as SpecDatabase,
+};
 
 pub struct Api {
     port: u16,
@@ -54,7 +57,7 @@ async fn get_blocks(database: web::Data<Database>) -> impl Responder {
 // Adds a new block to the blockchain
 async fn add_block(database: web::Data<Database>, block_json: web::Json<Block>) -> HttpResponse {
     let block = block_json.into_inner();
-    let result = database.add_block(block.clone());
+    let result = database.append_block(&block);
 
     match result {
         Ok(_) => {
@@ -77,7 +80,9 @@ async fn add_transaction(
     transaction_json: web::Json<Transaction>,
 ) -> impl Responder {
     let transaction = transaction_json.into_inner();
-    database.add_transaction(transaction);
-
-    HttpResponse::Ok()
+    let result = database.add_transaction(transaction);
+    match result {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(error) => HttpResponse::BadRequest().body(error.to_string()),
+    }
 }

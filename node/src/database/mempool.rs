@@ -1,38 +1,25 @@
 use spec::types::Transaction;
-use std::sync::{Arc, Mutex};
-
-pub type TransactionVec = Vec<Transaction>;
-
-// We don't need to export this type because concurrency is encapsulated in this file
-type SyncedTransactionVec = Arc<Mutex<TransactionVec>>;
 
 // Represents a pool of unrealized transactions
-// Multiple threads can read/write concurrently to the pool
 #[derive(Debug, Clone, Default)]
 pub struct Mempool {
-    transactions: SyncedTransactionVec,
+    transactions: Vec<Transaction>,
 }
 
-// Basic operations in the transaction pool are encapsulated in the implementation
-// Encapsulates concurrency concerns, so external callers do not need to know how it's handled
 impl Mempool {
-    pub fn get_transactions(&self) -> TransactionVec {
-        let transactions = self.transactions.lock().unwrap();
-        transactions.clone()
+    pub fn get_transactions(&self) -> Vec<Transaction> {
+        self.transactions.clone()
     }
 
-    pub fn remove_transactions(&self, transactions: Vec<Transaction>) {
-        // TODO: transactions should have a nonce to avoid duplicates
-        let mut pool_transactions = self.transactions.lock().unwrap();
-        pool_transactions.retain(|t| !transactions.contains(t));
-    }
-
-    // Adds a new transaction to the pool
-    pub fn add_transaction(&self, transaction: Transaction) {
-        // TODO: transactions should be validated before being included in the pool
-        let mut transactions = self.transactions.lock().unwrap();
-        transactions.push(transaction);
+    // Add a new transaction to the pool
+    pub fn add_transaction(&mut self, transaction: Transaction) {
+        self.transactions.push(transaction);
         info!("transaction added");
+    }
+
+    pub fn remove_transactions(&mut self, transactions: &[Transaction]) {
+        // TODO: transactions should have a nonce to avoid duplicates
+        self.transactions.retain(|t| !transactions.contains(t));
     }
 }
 
@@ -59,7 +46,7 @@ mod tests {
         assert_eq!(mempool.get_transactions().len(), 1);
 
         // ...and then remove it
-        mempool.remove_transactions(vec![transaction]);
+        mempool.remove_transactions(&vec![transaction]);
         assert!(mempool.get_transactions().is_empty());
     }
 
@@ -77,7 +64,7 @@ mod tests {
         assert_eq!(mempool.get_transactions().len(), 3);
 
         // and then remove some all but one
-        mempool.remove_transactions(vec![tx_1, tx_3]);
+        mempool.remove_transactions(&vec![tx_1, tx_3]);
         assert_eq!(mempool.get_transactions().len(), 1);
 
         // the remaining transaction should be the non-removed one

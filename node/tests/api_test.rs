@@ -1,17 +1,17 @@
 mod utils;
 use rusty_fork::rusty_fork_test;
 use serial_test::serial;
+use spec::types::hash::ConsensusHash;
+use spec::types::Block;
+use spec::types::Transaction;
+use spec::validators::BLOCK_SUBSIDY;
 
 use crate::utils::alice;
 use crate::utils::miner_address;
 use crate::utils::Miner;
-use spec::BlockHash;
-use spec::Transaction;
 
 use crate::utils::RestApi;
 use crate::utils::TestServerBuilder;
-
-use spec::Block;
 
 // We run each test in a separated process to force resource liberation (i.e. network ports)
 rusty_fork_test! {
@@ -32,7 +32,7 @@ fn test_should_get_a_valid_genesis_block() {
     // check that the genesis block fields are valid
     assert_eq!(genesis_block.index, 0);
     assert_eq!(genesis_block.nonce, 0);
-    assert_eq!(genesis_block.previous_hash, BlockHash::default());
+    assert_eq!(genesis_block.previous_hash, ConsensusHash::default());
     assert!(genesis_block.transactions.is_empty());
 }
 
@@ -84,7 +84,7 @@ fn test_should_let_add_valid_block() {
     let coinbase = Transaction {
         sender: miner_address(),
         recipient: alice(),
-        amount: spec::BLOCK_SUBSIDY,
+        amount: BLOCK_SUBSIDY,
     };
 
     let valid_block = Block::new(1, 0, genesis_block.hash, vec![coinbase]);
@@ -100,7 +100,7 @@ fn test_should_not_let_add_invalid_block() {
     node.start();
 
     // the previous hash is invalid, so the node should return an error when adding the block
-    let invalid_block = Block::new(1, 0, BlockHash::default(), vec![]);
+    let invalid_block = Block::new(1, 0, ConsensusHash::default(), vec![]);
 
     let res = node.add_block(&invalid_block);
     assert_eq!(res.status().as_u16(), 400);

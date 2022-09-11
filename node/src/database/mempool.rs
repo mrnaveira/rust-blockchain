@@ -25,7 +25,7 @@ impl Mempool {
 
 #[cfg(test)]
 mod tests {
-    use spec::Address;
+    use spec::types::Address;
 
     use super::*;
 
@@ -38,7 +38,7 @@ mod tests {
 
     #[test]
     fn should_remove_existing_single_transaction() {
-        let mempool = Mempool::default();
+        let mut mempool = Mempool::default();
 
         // add a single transaction to the pool...
         let transaction = create_mock_transaction(1);
@@ -52,7 +52,7 @@ mod tests {
 
     #[test]
     fn should_remove_existing_multiple_transactions() {
-        let mempool = Mempool::default();
+        let mut mempool = Mempool::default();
 
         // add multiple transactions to the pool...
         let tx_1 = create_mock_transaction(1);

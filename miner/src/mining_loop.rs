@@ -1,12 +1,14 @@
 use core::time;
 
-use spec::{Address, BlockHash, Transaction, BLOCK_SUBSIDY};
+use spec::{
+    types::{Address, Transaction},
+    validators::BLOCK_SUBSIDY,
+};
 
 use crate::{block_miner::mine_block, cli::MinerArgs, node_client::NodeClient};
 
 pub fn run_mining_loop(args: MinerArgs, node_client: impl NodeClient) {
     let mut blocks_mined: u64 = 0;
-    let target = create_target(args.difficulty);
 
     while should_keep_mining(blocks_mined, &args) {
         let last_block = node_client.get_last_block();
@@ -19,7 +21,7 @@ pub fn run_mining_loop(args: MinerArgs, node_client: impl NodeClient) {
         transactions.insert(0, coinbase);
 
         // Try to mine the new block
-        let mining_result = mine_block(&args, target, last_block, transactions);
+        let mining_result = mine_block(&args, last_block, transactions);
         match mining_result {
             Some(new_block) => {
                 // TODO: properly log the mined block
@@ -35,12 +37,6 @@ pub fn run_mining_loop(args: MinerArgs, node_client: impl NodeClient) {
             }
         }
     }
-}
-
-// Creates binary data mask with the amount of left padding zeroes indicated by the "difficulty" value
-// Used to easily compare if a newly created block has a hash that matches the difficulty
-pub fn create_target(difficulty: u32) -> BlockHash {
-    BlockHash::MAX >> difficulty
 }
 
 pub fn create_coinbase_transaction(miner_address: Address) -> Transaction {

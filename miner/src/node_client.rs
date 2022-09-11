@@ -1,5 +1,5 @@
 use isahc::{ReadResponseExt, Request};
-use spec::{Block, Transaction};
+use spec::types::{Block, Transaction};
 
 pub trait NodeClient {
     fn get_last_block(&self) -> Block;

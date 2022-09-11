@@ -2,9 +2,12 @@ use std::{thread, time::Duration};
 
 use isahc::{Body, ReadResponseExt, Request, Response};
 use node::{server::Server, util::Config};
-use spec::{Address, Block, Transaction, BLOCK_SUBSIDY};
 
 use miner::{cli::MinerArgs, mining_loop::run_mining_loop, node_client::NetworkNodeClient};
+use spec::{
+    types::{Address, Block, Transaction},
+    validators::BLOCK_SUBSIDY,
+};
 
 const DEFAULT_PORT: u16 = 8000;
 const DEFAULT_DIFFICULTY: u32 = 0;

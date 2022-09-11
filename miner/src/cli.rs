@@ -1,5 +1,5 @@
 use clap::Parser;
-use spec::Address;
+use spec::types::Address;
 
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]

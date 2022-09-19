@@ -3,8 +3,7 @@ use thiserror::Error;
 
 use crate::types::Block;
 
-#[derive(Error, PartialEq, Debug)]
-#[allow(clippy::enum_variant_names)]
+#[derive(Error, PartialEq, Eq, Debug)]
 pub enum ProofOfWorkError {
     #[error("Invalid difficulty")]
     InvalidDifficulty,

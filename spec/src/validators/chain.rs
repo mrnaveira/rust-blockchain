@@ -2,7 +2,7 @@ use crate::{types::Block, Database};
 use anyhow::Result;
 use thiserror::Error;
 
-#[derive(Error, PartialEq, Debug)]
+#[derive(Error, PartialEq, Eq, Debug)]
 #[allow(clippy::enum_variant_names)]
 pub enum ChainError {
     #[error("Invalid index")]

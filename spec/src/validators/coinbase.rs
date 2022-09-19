@@ -7,8 +7,7 @@ use crate::types::Transaction;
 // For now, this amount is constant
 pub const BLOCK_SUBSIDY: u64 = 100;
 
-#[derive(Error, PartialEq, Debug)]
-#[allow(clippy::enum_variant_names)]
+#[derive(Error, PartialEq, Eq, Debug)]
 pub enum CoinbaseError {
     #[error("Coinbase transaction not found")]
     CoinbaseTransactionNotFound,

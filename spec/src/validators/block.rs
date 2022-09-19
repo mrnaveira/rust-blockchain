@@ -7,8 +7,7 @@ use super::{
 };
 use crate::{types::Block, Database};
 
-#[derive(Error, PartialEq, Debug)]
-#[allow(clippy::enum_variant_names)]
+#[derive(Error, PartialEq, Eq, Debug)]
 pub enum BlockError {
     #[error("Invalid hash")]
     InvalidHash,

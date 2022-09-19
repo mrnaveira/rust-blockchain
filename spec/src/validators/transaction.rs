@@ -2,8 +2,7 @@ use crate::{types::Transaction, Database};
 use anyhow::Result;
 use thiserror::Error;
 
-#[derive(Error, PartialEq, Debug)]
-#[allow(clippy::enum_variant_names)]
+#[derive(Error, PartialEq, Eq, Debug)]
 pub enum TransactionError {
     #[error("Sender account does not exist")]
     SenderAccountDoesNotExist,

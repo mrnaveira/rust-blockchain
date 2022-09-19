@@ -5,8 +5,7 @@ use crate::types::hash::ConsensusHashable;
 use crate::types::Block;
 use crate::Database;
 
-#[derive(Error, PartialEq, Debug)]
-#[allow(clippy::enum_variant_names)]
+#[derive(Error, PartialEq, Eq, Debug)]
 pub enum GenesisError {
     #[error("Invalid index")]
     InvalidIndex,

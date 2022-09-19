@@ -5,7 +5,7 @@ use thiserror::Error;
 use super::Address;
 use spec::types::Coin;
 
-#[derive(Error, PartialEq, Debug)]
+#[derive(Error, PartialEq, Eq, Debug)]
 pub enum AccountDatabaseError {
     #[error("Sender account does not exist")]
     SenderAccountDoesNotExist,

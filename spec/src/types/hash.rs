@@ -9,7 +9,7 @@ use sha3::{
 };
 use thiserror::Error;
 
-#[derive(Error, PartialEq, Debug)]
+#[derive(Error, PartialEq, Eq, Debug)]
 #[allow(clippy::enum_variant_names)]
 pub enum ConsensusHashError {
     #[error("Invalid format")]

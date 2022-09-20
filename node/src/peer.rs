@@ -1,8 +1,8 @@
 use crate::{
     database::Database,
     util::{
+        config::Config,
         execution::{sleep_millis, Runnable},
-        Config,
     },
 };
 use anyhow::Result;

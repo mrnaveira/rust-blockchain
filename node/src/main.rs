@@ -10,15 +10,17 @@ mod util;
 use env_logger::{Builder, Target};
 use log::LevelFilter;
 
-use crate::{server::Server, util::Config};
+use crate::util::config::parse_from_cli;
+
+use crate::server::Server;
 
 fn main() {
     // set up the logging system
     initialize_logger();
     info!("starting up");
 
-    // read the configuration file
-    let config = Config::read();
+    // read the configuration from the command line
+    let config = parse_from_cli();
 
     // run the server
     let server = Server::new(config);

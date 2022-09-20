@@ -11,3 +11,6 @@
 # Coverage reports
 /coverage/
 **/*.profraw
+
+# Visual Studio Code
+.vscode/launch.json

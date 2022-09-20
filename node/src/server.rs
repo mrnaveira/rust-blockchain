@@ -4,7 +4,7 @@ use crate::{
     api::Api,
     database::Database,
     peer::Peer,
-    util::{execution, Config},
+    util::{config::Config, execution},
 };
 
 pub struct Server {

@@ -1,7 +1,7 @@
 use std::{thread, time::Duration};
 
 use isahc::{Body, ReadResponseExt, Request, Response};
-use node::{server::Server, util::Config};
+use node::{server::Server, util::config::Config};
 
 use miner::{cli::MinerArgs, mining_loop::run_mining_loop, node_client::NetworkNodeClient};
 use spec::{

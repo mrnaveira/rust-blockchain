@@ -24,6 +24,7 @@ fn test_should_receive_new_valid_blocks() {
     // This new node will keep asking for new blocks to the leader node
     let follower_node = TestServerBuilder::new().port(8001).peer(8000).build();
     follower_node.start();
+    follower_node.wait_for_peer_sync();
 
     // At the beggining, both nodes will only have the genesis blocks
     assert_eq!(leader_node.get_blocks().len(), 1);
@@ -59,7 +60,9 @@ fn test_should_not_receive_new_invalid_blocks() {
         .build();
     follower_node.start();
 
-    // we create a new valid block in the leader node
+    // we add valid blocks in the leader node
+    let miner = Miner::new_with_node(&leader_node);
+    miner.mine_blocks(1);
     leader_node.add_valid_block();
 
     // the follower node should eventually ask and receive the new block
@@ -75,6 +78,10 @@ fn test_should_ignore_unavailable_peers() {
     // We will use this node to be the most updated one
     let leader_node = TestServerBuilder::new().port(8000).build();
     leader_node.start();
+
+    // mine the genesis block in the leader node
+    let miner = Miner::new_with_node(&leader_node);
+    miner.mine_blocks(1);
 
     // This new node will keep asking for new blocks to the leader node
     // but also to a node that does not exist...
@@ -101,6 +108,10 @@ fn test_should_send_new_blocks() {
     // This node will always be behind the leader node
     let leader_node = TestServerBuilder::new().port(8000).build();
     leader_node.start();
+
+    // mine the genesis block in the leader node
+    let miner = Miner::new_with_node(&leader_node);
+    miner.mine_blocks(1);
 
     // We will use this node to be the most updated one
     let follower_node = TestServerBuilder::new()

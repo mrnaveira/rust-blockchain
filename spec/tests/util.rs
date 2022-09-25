@@ -10,6 +10,7 @@ pub struct MockDatabase {
     network: Network,
     blocks: Vec<Block>,
     balances: HashMap<Address, Coin>,
+    transactions: Vec<Transaction>,
 }
 
 impl MockDatabase {
@@ -18,6 +19,7 @@ impl MockDatabase {
             network,
             blocks: vec![],
             balances: HashMap::new(),
+            transactions: vec![],
         }
     }
 
@@ -103,6 +105,10 @@ impl Database for MockDatabase {
             Some(balance) => Some(*balance),
             None => None,
         }
+    }
+
+    fn get_mempool_transactions(&self) -> Vec<Transaction> {
+        self.transactions.clone()
     }
 }
 

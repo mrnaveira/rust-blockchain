@@ -21,10 +21,6 @@ pub struct MinerArgs {
     #[clap(short = 'd', long, value_parser, default_value = "10")]
     pub difficulty: u32,
 
-    /// Amount of milliseconds that the miner wil wait before checking new transactions
-    #[clap(short = 'w', long, value_parser, default_value = "10000")]
-    pub tx_waiting_ms: u64,
-
     /// Maximum number of blocks to mine (0 for unlimited)
     #[clap(long, value_parser, default_value = "0")]
     pub max_blocks: u64,

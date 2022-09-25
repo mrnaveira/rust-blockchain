@@ -1,6 +1,8 @@
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use crate::Database;
+
 use super::{
     hash::{ConsensusHash, ConsensusHashable},
     Transaction,
@@ -36,6 +38,22 @@ impl Block {
         block.hash = block.calculate_hash();
 
         block
+    }
+
+    pub fn new_template<T: Database>(database: &T) -> Block {
+        let (index, previous_hash) = match database.get_tip_block() {
+            Some(tip_block) => (tip_block.index + 1, tip_block.hash),
+            None => {
+                // The template is for the genesis block
+                let index = 0;
+                let previous_hash = database.get_network().consensus_hash();
+                (index, previous_hash)
+            }
+        };
+
+        let transactions = database.get_mempool_transactions();
+
+        Block::new(index, 0, previous_hash, transactions)
     }
 
     // Calculate the hash value of the block

@@ -1,9 +1,8 @@
 use isahc::{ReadResponseExt, Request};
-use spec::types::{Block, Transaction};
+use spec::types::Block;
 
 pub trait NodeClient {
-    fn get_last_block(&self) -> Block;
-    fn get_mempool_transactions(&self) -> Vec<Transaction>;
+    fn get_block_template(&self) -> Block;
     fn submit_block(&self, block: &Block);
 }
 
@@ -18,28 +17,14 @@ impl NetworkNodeClient {
 }
 
 impl NodeClient for NetworkNodeClient {
-    fn get_last_block(&self) -> Block {
-        let uri = format!("{}/blocks", self.node_url);
+    fn get_block_template(&self) -> Block {
+        let uri = format!("{}/block_template", self.node_url);
         let mut response = isahc::get(uri).unwrap();
 
         // check that the response is sucessful
         assert_eq!(response.status().as_u16(), 200);
 
-        // parse and return the list of blocks from the response body
-        let raw_body = response.text().unwrap();
-        let blocks: Vec<Block> = serde_json::from_str(&raw_body).unwrap();
-
-        blocks.last().unwrap().to_owned()
-    }
-
-    fn get_mempool_transactions(&self) -> Vec<Transaction> {
-        let uri = format!("{}/transactions", self.node_url);
-        let mut response = isahc::get(uri).unwrap();
-
-        // check that the response is sucessful
-        assert_eq!(response.status().as_u16(), 200);
-
-        // parse and return the list of transactions from the response body
+        // parse and return block template
         let raw_body = response.text().unwrap();
         serde_json::from_str(&raw_body).unwrap()
     }

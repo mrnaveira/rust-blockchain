@@ -2,14 +2,14 @@ use spec::types::Network;
 
 use crate::{
     api::Api,
-    database::Database,
+    database::ConcurrentNodeDatabase,
     peer::Peer,
     util::{config::Config, execution},
 };
 
 pub struct Server {
     pub config: Config,
-    pub database: Database,
+    pub database: ConcurrentNodeDatabase,
 }
 
 impl Server {
@@ -21,7 +21,7 @@ impl Server {
             timestamp: 0,
         };
 
-        let database = Database::new(network);
+        let database = ConcurrentNodeDatabase::new(network);
 
         Self { config, database }
     }

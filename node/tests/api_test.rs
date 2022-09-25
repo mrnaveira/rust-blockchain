@@ -19,8 +19,13 @@ rusty_fork_test! {
 #[test]
 #[serial]
 fn test_should_get_a_valid_genesis_block() {
+    // start the node
     let node = TestServerBuilder::new().build();
     node.start();
+
+    // mine the genesis block
+    let miner = Miner::new();
+    miner.mine_blocks(1);
 
     // list the blocks by querying the REST API
     let blocks = node.get_blocks();
@@ -28,20 +33,19 @@ fn test_should_get_a_valid_genesis_block() {
     // check that the blocks only contain the genesis block
     assert_eq!(blocks.len(), 1);
     let genesis_block = blocks.first().unwrap();
-
-    // check that the genesis block fields are valid
     assert_eq!(genesis_block.index, 0);
-    assert_eq!(genesis_block.nonce, 0);
-    assert_eq!(genesis_block.previous_hash, ConsensusHash::default());
-    assert!(genesis_block.transactions.is_empty());
 }
 
 #[test]
 #[serial]
 fn test_should_let_add_transactions() {
+    // start the node
     let node = TestServerBuilder::new().build();
     node.start();
 
+    // mine the genesis block
+    let miner = Miner::new();
+    miner.mine_blocks(1);
     let genesis_block = node.get_last_block();
 
     // create and add a new transaction to the pool
@@ -77,18 +81,24 @@ fn test_should_let_add_transactions() {
 #[test]
 #[serial]
 fn test_should_let_add_valid_block() {
+    // start the node
     let node = TestServerBuilder::new().build();
     node.start();
 
+    // mine the genesis block
+    let miner = Miner::new();
+    miner.mine_blocks(1);
     let genesis_block = node.get_last_block();
+
+    // build a valid block
     let coinbase = Transaction {
         sender: miner_address(),
         recipient: alice(),
         amount: BLOCK_SUBSIDY,
     };
-
     let valid_block = Block::new(1, 0, genesis_block.hash, vec![coinbase]);
 
+    // the node should accept the block
     let res = node.add_block(&valid_block);
     assert_eq!(res.status().as_u16(), 200);
 }
@@ -96,12 +106,18 @@ fn test_should_let_add_valid_block() {
 #[test]
 #[serial]
 fn test_should_not_let_add_invalid_block() {
+    // start the node
     let node = TestServerBuilder::new().build();
     node.start();
 
-    // the previous hash is invalid, so the node should return an error when adding the block
+    // mine the genesis block
+    let miner = Miner::new();
+    miner.mine_blocks(1);
+
+    // build a block with an invalid previous hash
     let invalid_block = Block::new(1, 0, ConsensusHash::default(), vec![]);
 
+    // the node should return an error when adding the block
     let res = node.add_block(&invalid_block);
     assert_eq!(res.status().as_u16(), 400);
 }

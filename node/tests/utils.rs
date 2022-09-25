@@ -34,12 +34,12 @@ impl TestServer {
 
     pub fn wait_for_peer_sync(&self) {
         // TODO: improve it by inspecting the server itself (logs, variables, etc)
-        thread::sleep(Duration::from_millis(self.config.peer_sync_ms + 10));
+        thread::sleep(Duration::from_millis(self.config.peer_sync_ms + 100));
     }
 
     pub fn wait_to_receive_block_in_api(&self) {
         // TODO: improve it by inspecting the server itself (logs, variables, etc)
-        thread::sleep(Duration::from_millis(self.config.peer_sync_ms + 10));
+        thread::sleep(Duration::from_millis(self.config.peer_sync_ms + 100));
     }
 }
 
@@ -188,19 +188,15 @@ pub struct Miner {
 
 #[allow(dead_code)]
 impl Miner {
-    pub fn new() -> Miner {
-        // set the default values
-        let config = MinerArgs {
-            miner_address: miner_address(),
-            node_url: format!("http://localhost:{}", DEFAULT_PORT),
-            difficulty: DEFAULT_DIFFICULTY,
-            // not to high to avoid waiting, not too shot to spam it
-            tx_waiting_ms: 10,
-            max_blocks: 1_u64,
-            max_nonce: 1_000_000,
-        };
+    pub fn new() -> Self {
+        let config = Self::default_config();
+        Self { config }
+    }
 
-        Miner { config }
+    pub fn new_with_node(node: &TestServer) -> Self {
+        let mut config = Self::default_config();
+        config.node_url = Self::get_node_url(node.config.port);
+        Self { config }
     }
 
     pub fn mine_blocks(&self, num_blocks: u64) {
@@ -210,5 +206,21 @@ impl Miner {
         let node_client = NetworkNodeClient::new(config.node_url.clone());
 
         run_mining_loop(config, node_client);
+
+        thread::sleep(Duration::from_millis(100));
+    }
+
+    fn default_config() -> MinerArgs {
+        MinerArgs {
+            miner_address: miner_address(),
+            node_url: Self::get_node_url(DEFAULT_PORT),
+            difficulty: DEFAULT_DIFFICULTY,
+            max_blocks: 1_u64,
+            max_nonce: 1_000_000,
+        }
+    }
+
+    fn get_node_url(port: u16) -> String {
+        format!("http://localhost:{}", port)
     }
 }

@@ -2,6 +2,7 @@ mod utils;
 use rusty_fork::rusty_fork_test;
 use serial_test::serial;
 
+use crate::utils::Miner;
 use crate::utils::TestServerBuilder;
 
 use crate::utils::RestApi;
@@ -15,6 +16,10 @@ fn test_should_receive_new_valid_blocks() {
     // We will use this node to be the most updated one
     let leader_node = TestServerBuilder::new().port(8000).build();
     leader_node.start();
+
+    // mine the genesis block in the leader node
+    let miner = Miner::new_with_node(&leader_node);
+    miner.mine_blocks(1);
 
     // This new node will keep asking for new blocks to the leader node
     let follower_node = TestServerBuilder::new().port(8001).peer(8000).build();

@@ -1,5 +1,5 @@
 use crate::{
-    database::Database,
+    database::ConcurrentNodeDatabase,
     util::{
         config::Config,
         execution::{sleep_millis, Runnable},
@@ -13,7 +13,7 @@ use std::panic;
 pub struct Peer {
     peer_addresses: Vec<String>,
     peer_sync_ms: u64,
-    database: Database,
+    database: ConcurrentNodeDatabase,
 }
 
 impl Runnable for Peer {
@@ -23,7 +23,7 @@ impl Runnable for Peer {
 }
 
 impl Peer {
-    pub fn new(config: &Config, database: &Database) -> Peer {
+    pub fn new(config: &Config, database: &ConcurrentNodeDatabase) -> Peer {
         Peer {
             peer_addresses: config.peers.clone(),
             peer_sync_ms: config.peer_sync_ms,
@@ -160,7 +160,7 @@ impl Peer {
         self.database
             .get_all_blocks()
             .get(new_blocks_range)
-            .unwrap()
+            .unwrap_or_default()
             .to_vec()
     }
 

@@ -1,33 +1,19 @@
-use spec::{
-    types::{Block, Transaction},
-    validators::validate_pow,
-};
+use spec::{types::Block, validators::validate_pow};
 
 use crate::cli::MinerArgs;
 
-pub fn mine_block(
-    args: &MinerArgs,
-    last_block: Block,
-    transactions: Vec<Transaction>,
-) -> Option<Block> {
+pub fn mine_block(args: &MinerArgs, block_template: &Block) -> Option<Block> {
+    let mut block_canditate = block_template.clone();
+
     // mining is just trying different nonces until the block hash has enough starting zeroes
     for nonce in 0..args.max_nonce {
-        let next_block = create_next_block(&last_block, transactions.clone(), nonce);
+        block_canditate.nonce = nonce;
+        block_canditate.hash = block_canditate.calculate_hash();
 
-        if validate_pow(args.difficulty, &next_block).is_ok() {
-            return Some(next_block);
+        if validate_pow(args.difficulty, &block_canditate).is_ok() {
+            return Some(block_canditate);
         }
     }
 
     None
-}
-
-// Creates a valid next block for a blockchain
-// Takes into account the index and the hash of the previous block
-pub fn create_next_block(last_block: &Block, transactions: Vec<Transaction>, nonce: u64) -> Block {
-    let index = (last_block.index + 1) as u64;
-    let previous_hash = last_block.hash.clone();
-
-    // the hash of the new block is automatically calculated on creation
-    Block::new(index, nonce, previous_hash, transactions)
 }
